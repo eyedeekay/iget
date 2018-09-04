@@ -9,6 +9,21 @@ import (
 	i "github.com/eyedeekay/iget"
 )
 
+type arrayFlags []string
+
+func (i *arrayFlags) String() string {
+	var r string
+	for _, s := range *i {
+		r += s + ","
+	}
+	return strings.TrimSuffix(r, ",")
+}
+
+func (i *arrayFlags) Set(value string) error {
+	*i = append(*i, value)
+	return nil
+}
+
 var (
 	// application options
 	samHostString  = flag.String("bridge-host", "127.0.0.1", "host: of the SAM bridge")
@@ -37,6 +52,14 @@ var (
 	// request options
 	method = flag.String("method", "GET", "Request method")
 	closer = flag.Bool("close", true, "Close the request immediately after reading the response")
+
+	// compatibility options
+	linelength = flag.String("l", "", "Linelength(not enabled, provided so it doesn't break places where eepGet is already used, pipe it to something else to control line length, a wrapper will do this for iget)")
+	etag       = flag.String("e", "", "Set the etag header, not enabled yet, will break when used.")
+	marksize   = flag.String("m", "", "Marksize(not enabled, provided so it doesn't break places where eepGet is already used)")
+	retries    = flag.String("n", "", "Retries(not enabled yet, provided so it doesn't break places where eepGet is already used)")
+	user       = flag.String("u", "", "Username for authenticating to SAM(not enabled yet, provided so it doesn't break places where eepGet is already used, will break non-empty usernames)")
+	pass       = flag.String("x", "", "Password for authenticating to SAM(not enabled yet, provided so it doesn't break places where eepGet is already used, will break non-empty passwords)")
 )
 
 var (
@@ -46,9 +69,11 @@ var (
 )
 
 func main() {
+	var headers arrayFlags
 	stimeoutTime := flag.Int("t", 6, "Timeout duration in minutes")
 	soutput := flag.String("o", "-", "Output path")
 	ssamAddrString := flag.String("p", "127.0.0.1:7656", "host:port of the SAM bridge. Overrides bridge-host/bridge-port.")
+	flag.Var(&headers, "h", "Add a header to the request in the form key=value")
 	flag.Parse()
 	if *soutput != "-" {
 		output = *soutput

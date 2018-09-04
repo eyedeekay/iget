@@ -22,9 +22,10 @@ type IGet struct {
 
 	outputPath string
 
-	method string
-	url    string
-	body   string
+	method  string
+	url     string
+	body    string
+	headers []string
 
 	destLifespan    int
 	timeoutTime     int

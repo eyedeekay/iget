@@ -34,7 +34,7 @@ test:
 	go test
 
 clean:
-	rm -rf bin
+	rm -f bin/iget
 
 deps:
 	go get -u github.com/eyedeekay/gosam
