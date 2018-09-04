@@ -7,7 +7,7 @@ CGO_ENABLED=0
 
 GO_COMPILER_OPTS = -a -tags netgo -ldflags '-w -extldflags "-static"'
 
-build: $(OUTFOLDER) fmt
+build: $(OUTFOLDER) fmt lint
 	GOOS=linux GOARCH=amd64 go build \
 		$(GO_COMPILER_OPTS) \
 		-o $(OUTFOLDER)/iget \
@@ -15,7 +15,10 @@ build: $(OUTFOLDER) fmt
 	@echo 'built'
 
 fmt:
-	find . -name '*.go' -exec gofmt -w {} \;
+	find . -path ./.go -prune -o -name '*.go' -exec gofmt -w {} \;
+
+lint:
+	find . -path ./.go -prune -o -name '*.go' -exec golint {} \;
 
 $(OUTFOLDER):
 	mkdir -p $(OUTFOLDER)
