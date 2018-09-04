@@ -13,7 +13,7 @@ var (
 	// application options
 	samHostString  = flag.String("bridge-host", "127.0.0.1", "host: of the SAM bridge")
 	samPortString  = flag.String("bridge-port", "7656", ":port of the SAM bridge")
-	dsamAddrString = flag.String("bridge-addr", "127.0.0.1:7656", "host:port of the SAM bridge. Inactive at the moment.")
+	dsamAddrString = flag.String("bridge-addr", "127.0.0.1:7656", "host:port of the SAM bridge. Overrides bridge-host/bridge-port.")
 	address        = flag.String("url", "", "i2p URL you want to retrieve")
 
 	// debug options
@@ -48,7 +48,7 @@ var (
 func main() {
 	stimeoutTime := flag.Int("t", 6, "Timeout duration in minutes")
 	soutput := flag.String("o", "-", "Output path")
-	ssamAddrString := flag.String("p", "127.0.0.1:7656", "host:port of the SAM bridge. Inactive at the moment.")
+	ssamAddrString := flag.String("p", "127.0.0.1:7656", "host:port of the SAM bridge. Overrides bridge-host/bridge-port.")
 	flag.Parse()
 	if *soutput != "-" {
 		output = *soutput
@@ -64,6 +64,11 @@ func main() {
 		samAddrString = *ssamAddrString
 	} else {
 		samAddrString = *dsamAddrString
+	}
+	if strings.Contains(samAddrString, "4444") {
+		fmt.Printf("%s", "This application uses the SAM API instead of the http proxy.")
+		fmt.Printf("%s", "Please modify your scripts to use the SAM port.")
+		return
 	}
 	if samAddrString != *samHostString+":"+*samPortString && samAddrString != "127.0.0.1:7656" {
 		x := strings.Split(samAddrString, ":")

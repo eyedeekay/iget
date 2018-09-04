@@ -37,7 +37,7 @@ Only two I know of so far.
 ```
 Usage of ./bin/iget:
   -bridge-addr string
-    	host:port of the SAM bridge. Inactive at the moment. (default "127.0.0.1:7656")
+    	host:port of the SAM bridge. Overrides bridge-host/bridge-port. (default "127.0.0.1:7656")
   -bridge-host string
     	host: of the SAM bridge (default "127.0.0.1")
   -bridge-port string
@@ -67,7 +67,7 @@ Usage of ./bin/iget:
   -output string
     	Output path (default "-")
   -p string
-    	host:port of the SAM bridge. Inactive at the moment. (default "127.0.0.1:7656")
+    	host:port of the SAM bridge. Overrides bridge-host/bridge-port. (default "127.0.0.1:7656")
   -t int
     	Timeout duration in minutes (default 6)
   -timeout int
