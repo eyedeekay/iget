@@ -43,10 +43,15 @@ README.md:
 	@echo "" | tee -a $(PWD)/README.md
 	@echo "## to use:" | tee -a $(PWD)/README.md
 	@echo "" | tee -a $(PWD)/README.md
-	./bin/iget --help | tee -a $(PWD)/README.md
+	@echo '```' | tee -a $(PWD)/README.md
+	./bin/iget -h 2>&1 | tee -a $(PWD)/README.md
+	@echo '```' | tee -a $(PWD)/README.md
 	@echo "" | tee -a $(PWD)/README.md
 
 rcl:
 	rm -f $(PWD)/README.md
 
 re: rcl README.md
+
+fire:
+	./bin/iget -url http://i2p-projekt.i2p

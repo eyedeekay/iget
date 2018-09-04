@@ -11,8 +11,8 @@ var (
 	samPortString = flag.String("bridge-port", "7656", ":port of the SAM bridge")
 	address       = flag.String("url", "", "i2p URL you want to retrieve")
 
-    method = flag.String("method", "GET", "Request method")
-    closer      = flag.Bool("close", true, "Close the request immediately after reading the response")
+	method = flag.String("method", "GET", "Request method")
+	closer = flag.Bool("close", true, "Close the request immediately after reading the response")
 
 	debugConnection = flag.Bool("conn-debug", false, "Print connection debug info")
 	verboseLogging  = flag.Bool("verbose", false, "Print connection debug info")
@@ -44,13 +44,13 @@ func main() {
 		i.URL(*address),
 		i.SamHost(*samAddrString),
 		i.SamPort(*samPortString),
-        i.Method(*method),
+		i.Method(*method),
 	); ierr != nil {
 		fmt.Printf(ierr.Error())
 	} else {
 		if r, e := iget.Request(
-            i.Close(*closer),
-        ); e != nil {
+			i.Close(*closer),
+		); e != nil {
 			fmt.Printf(ierr.Error())
 		} else {
 			if b, e := iget.DoString(r); e != nil {

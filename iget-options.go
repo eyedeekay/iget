@@ -13,7 +13,7 @@ func Lifespan(i int) Option {
 // Timeout defines the maximum timeout time
 func Timeout(i int) Option {
 	return func(args *IGet) {
-		args.timeoutTime = i
+		args.timeoutTime = i * 60 * 1000
 	}
 }
 
