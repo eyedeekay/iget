@@ -14,6 +14,9 @@ build: $(OUTFOLDER) fmt lint
 		./cmd/main.go
 	@echo 'built'
 
+install:
+	install -m755 bin/iget /usr/bin/iget
+
 fmt:
 	find . -path ./.go -prune -o -name '*.go' -exec gofmt -w {} \;
 
@@ -36,6 +39,27 @@ deps:
 README.md:
 	@echo "# iget" | tee $(PWD)/README.md
 	@echo "i2p terminal http client." | tee -a $(PWD)/README.md
+	@echo "" | tee -a $(PWD)/README.md
+	@echo "## description:" | tee -a $(PWD)/README.md
+	@echo "This is a highly-configurable curl/wget like client which exclusively works" | tee -a $(PWD)/README.md
+	@echo "over i2p. It works via the SAM API which means it has some advantages and" | tee -a $(PWD)/README.md
+	@echo "some disadvantages, as follows:" | tee -a $(PWD)/README.md
+	@echo "" | tee -a $(PWD)/README.md
+	@echo "Wherever possiblem, short arguments will mirror their curl equivalents." | tee -a $(PWD)/README.md
+	@echo "" | tee -a $(PWD)/README.md
+	@echo "### Advantages:" | tee -a $(PWD)/README.md
+	@echo "These advantages motivated development. More may emerge as it continues." | tee -a $(PWD)/README.md
+	@echo "" | tee -a $(PWD)/README.md
+	@echo "  - uses the SAM API to prevent destination-reuse for different sites" | tee -a $(PWD)/README.md
+	@echo "  - uses the SAM API directly(not forwarding) so it can't leak information" | tee -a $(PWD)/README.md
+	@echo "    to clearnet services" | tee -a $(PWD)/README.md
+	@echo "  - inline options to configure i2cp, so for example we can have 8 tunnels " | tee -a $(PWD)/README.md
+	@echo "    in and 2 tunnels out" | tee -a $(PWD)/README.md
+	@echo "" | tee -a $(PWD)/README.md
+	@echo "### Disadvantages:" | tee -a $(PWD)/README.md
+	@echo "Only one I know of so far." | tee -a $(PWD)/README.md
+	@echo "" | tee -a $(PWD)/README.md
+	@echo "  - marginally slower, due to tunnel-creation at runtime." | tee -a $(PWD)/README.md
 	@echo "" | tee -a $(PWD)/README.md
 	@echo "## to build:" | tee -a $(PWD)/README.md
 	@echo "" | tee -a $(PWD)/README.md

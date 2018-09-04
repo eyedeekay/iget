@@ -1,6 +1,7 @@
 package iget
 
 import (
+    "fmt"
 	"crypto/tls"
 	"io/ioutil"
 	"net/http"
@@ -18,6 +19,8 @@ type IGet struct {
 	samPort string
 	debug   bool
 	verb    bool
+
+    outputPath string
 
 	method string
 	url    string
@@ -42,52 +45,66 @@ func (i IGet) samaddress() string {
 	return i.samHost + ":" + i.samPort
 }
 
+// Do "does" a request and returns a response. It's just a wrapper for http/client.Do
 func (i *IGet) Do(req *http.Request) (*http.Response, error) {
-	if c, e := i.client.Do(req); e != nil {
+	c, e := i.client.Do(req)
+	if e != nil {
 		return nil, e
-	} else {
-		return c, e
 	}
+	return c, e
 }
 
+// DoBytes does a request and returns the body of a response as bytes.
+// Eventually, it will be unused in iget, it's here for a hypothetical API and testing.
 func (i *IGet) DoBytes(req *http.Request) ([]byte, error) {
 	var b []byte
 	var err error
-	if c, e := i.Do(req); e != nil {
+	c, e := i.Do(req)
+	if e != nil {
 		return b, e
-	} else {
-		if b, err = ioutil.ReadAll(c.Body); err != nil {
-			return b, err
-		} else {
-			return b, nil
-		}
 	}
+	b, err = ioutil.ReadAll(c.Body)
+	if err != nil {
+		return b, err
+	}
+	return b, nil
 }
 
+// DoString does a request, converts the body to bytes, then returns the body of a response as a string.
+// Eventually, it will be unused in iget, it's here for a hypothetical API and testing.
 func (i *IGet) DoString(req *http.Request) (string, error) {
-	if b, e := i.DoBytes(req); e != nil {
+	b, e := i.DoBytes(req)
+	if e != nil {
 		return "", e
-	} else {
-		return string(b), nil
 	}
+	return string(b), nil
 }
 
 // Request generates an *http.Request
 func (i *IGet) Request(setters ...RequestOption) (*http.Request, error) {
-	if r, err := http.NewRequest(i.method, i.url, ioutil.NopCloser(strings.NewReader(i.body))); err != nil {
+	r, err := http.NewRequest(i.method, i.url, ioutil.NopCloser(strings.NewReader(i.body)))
+	if err != nil {
 		return nil, err
-	} else {
-		for _, setter := range setters {
-			setter(r)
-		}
-		return r, nil
 	}
+	for _, setter := range setters {
+		setter(r)
+	}
+	return r, nil
 }
 
-func (i *IGet) PrintResponse(*http.Response) string {
+// PrintResponse routes the output
+func (i *IGet) PrintResponse(c *http.Response) string {
 	if i.verb {
 
 	}
+    if i.outputPath == "-" {
+        b, err := ioutil.ReadAll(c.Body)
+        if err != nil {
+            return ""
+        }
+        fmt.Printf("%s", b)
+        return string(b)
+    }
 	return ""
 }
 
@@ -114,7 +131,7 @@ func NewIGet(setters ...Option) (*IGet, error) {
 	for _, setter := range setters {
 		setter(i)
 	}
-	if i.samClient, err = goSam.NewClientFromOptions(
+	i.samClient, err = goSam.NewClientFromOptions(
 		goSam.SetCloseIdle(true),
 		goSam.SetCloseIdleTime(3000000),
 		goSam.SetHost(i.samHost),
@@ -126,23 +143,23 @@ func NewIGet(setters ...Option) (*IGet, error) {
 		goSam.SetOutQuantity(uint(i.outboundTunnels)),
 		goSam.SetInBackups(uint(i.inboundBackups)),
 		goSam.SetOutBackups(uint(i.outboundBackups)),
-	); err != nil {
+	)
+	if err != nil {
 		return nil, err
-	} else {
-		i.transport = &http.Transport{
-			Dial:                  i.samClient.Dial,
-			MaxIdleConns:          i.idleConns,
-			MaxIdleConnsPerHost:   i.idleConns,
-			DisableKeepAlives:     i.keepAlives,
-			ResponseHeaderTimeout: time.Duration(i.timeoutTime) * time.Millisecond,
-			ExpectContinueTimeout: time.Duration(i.timeoutTime) * time.Millisecond,
-			IdleConnTimeout:       time.Duration(i.timeoutTime) * time.Millisecond,
-			TLSNextProto:          make(map[string]func(authority string, c *tls.Conn) http.RoundTripper),
-			TLSClientConfig:       &tls.Config{InsecureSkipVerify: true},
-		}
-		i.client = &http.Client{
-			Transport: i.transport,
-		}
-		return i, nil
 	}
+	i.transport = &http.Transport{
+		Dial:                  i.samClient.Dial,
+		MaxIdleConns:          i.idleConns,
+		MaxIdleConnsPerHost:   i.idleConns,
+		DisableKeepAlives:     i.keepAlives,
+		ResponseHeaderTimeout: time.Duration(i.timeoutTime) * time.Millisecond,
+		ExpectContinueTimeout: time.Duration(i.timeoutTime) * time.Millisecond,
+		IdleConnTimeout:       time.Duration(i.timeoutTime) * time.Millisecond,
+		TLSNextProto:          make(map[string]func(authority string, c *tls.Conn) http.RoundTripper),
+		TLSClientConfig:       &tls.Config{InsecureSkipVerify: true},
+	}
+	i.client = &http.Client{
+		Transport: i.transport,
+	}
+	return i, nil
 }

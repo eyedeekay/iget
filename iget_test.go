@@ -12,10 +12,10 @@ func TestIGet(t *testing.T) {
 		if r, e := ic.Request(); e != nil {
 			t.Fatal(e.Error())
 		} else {
-			if b, e := ic.DoString(r); e != nil {
+			if b, e := ic.Do(r); e != nil {
 				t.Fatal(e.Error())
 			} else {
-				log.Println(b)
+                c := ic.PrintResponse(b)
 			}
 		}
 	}
