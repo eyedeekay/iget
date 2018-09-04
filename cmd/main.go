@@ -15,7 +15,7 @@ var (
 	// debug options
 	debugConnection = flag.Bool("conn-debug", false, "Print connection debug info")
 	verboseLogging  = flag.Bool("verbose", false, "Print additional info about the process")
-	output          = flag.String("output", "-", "Output path(Not enabled yet, use pipes)")
+	output          = flag.String("output", "-", "Output path")
 
 	//i2p options
 	destLifespan    = flag.Int("lifespan", 6, "Lifespan of an idle i2p destination in minutes")
@@ -63,7 +63,7 @@ func main() {
 			if b, e := iget.Do(r); e != nil {
 				fmt.Printf(e.Error())
 			} else {
-                iget.PrintResponse(b)
+				iget.PrintResponse(b)
 			}
 		}
 	}

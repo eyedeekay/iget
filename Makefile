@@ -45,7 +45,8 @@ README.md:
 	@echo "over i2p. It works via the SAM API which means it has some advantages and" | tee -a $(PWD)/README.md
 	@echo "some disadvantages, as follows:" | tee -a $(PWD)/README.md
 	@echo "" | tee -a $(PWD)/README.md
-	@echo "Wherever possiblem, short arguments will mirror their curl equivalents." | tee -a $(PWD)/README.md
+	@echo "Wherever possible, short arguments will mirror their curl equivalents." | tee -a $(PWD)/README.md
+	@echo "However, I'm not trying to implement every single curl option." | tee -a $(PWD)/README.md
 	@echo "" | tee -a $(PWD)/README.md
 	@echo "### Advantages:" | tee -a $(PWD)/README.md
 	@echo "These advantages motivated development. More may emerge as it continues." | tee -a $(PWD)/README.md

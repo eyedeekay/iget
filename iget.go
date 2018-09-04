@@ -1,8 +1,8 @@
 package iget
 
 import (
-    "fmt"
 	"crypto/tls"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -20,7 +20,7 @@ type IGet struct {
 	debug   bool
 	verb    bool
 
-    outputPath string
+	outputPath string
 
 	method string
 	url    string
@@ -97,24 +97,35 @@ func (i *IGet) PrintResponse(c *http.Response) string {
 	if i.verb {
 
 	}
-    if i.outputPath == "-" {
-        b, err := ioutil.ReadAll(c.Body)
-        if err != nil {
-            return ""
-        }
-        fmt.Printf("%s", b)
-        return string(b)
-    }
+	if i.outputPath == "-" || i.outputPath == "stdout" {
+		b, err := ioutil.ReadAll(c.Body)
+		if err != nil {
+			return ""
+		}
+		fmt.Printf("%s", b)
+		return string(b)
+	} else {
+		b, err := ioutil.ReadAll(c.Body)
+		if err != nil {
+			return ""
+		}
+		err = ioutil.WriteFile(i.outputPath, b, 0644)
+		if err != nil {
+			return ""
+		}
+		return string(b)
+	}
 	return ""
 }
 
 // NewIGet is an IGet Client
 func NewIGet(setters ...Option) (*IGet, error) {
 	i := &IGet{
-		samHost: "localhost",
-		samPort: "7656",
-		verb:    false,
-		debug:   false,
+		samHost:    "localhost",
+		samPort:    "7656",
+		verb:       false,
+		debug:      false,
+		outputPath: "-",
 
 		destLifespan:    3000000,
 		timeoutTime:     3000000,
