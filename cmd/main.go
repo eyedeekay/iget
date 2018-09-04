@@ -51,19 +51,19 @@ func main() {
 	ssamAddrString := flag.String("p", "127.0.0.1:7656", "host:port of the SAM bridge. Inactive at the moment.")
 	flag.Parse()
 	if *soutput != "-" {
-		output := soutput
+		output = soutput
 	} else {
-		output := doutput
+		output = doutput
 	}
 	if *stimeoutTime != 6 {
-		timeoutTime := stimeoutTime
+		timeoutTime = stimeoutTime
 	} else {
-		timeoutTime := dtimeoutTime
+		timeoutTime = dtimeoutTime
 	}
 	if *ssamAddrString != "127.0.0.1:7656" {
-		samAddrString := ssamAddrString
+		samAddrString = ssamAddrString
 	} else {
-		samAddrString := dsamAddrString
+		samAddrString = dsamAddrString
 	}
 	if samAddrString != *samHostString+":"+*samPortString && samAddrString != "127.0.0.1:7656" {
 		x := strings.Split(samAddrString, ":")
