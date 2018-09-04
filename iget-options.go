@@ -39,6 +39,13 @@ func Outbound(i int) Option {
 }
 
 // Idles tells the max number of idle connections to allow
+func KeepAlives(i int) Option {
+	return func(args *IGet) {
+		args.idleConns = i
+	}
+}
+
+// Idles tells the max number of idle connections to allow
 func Idles(i int) Option {
 	return func(args *IGet) {
 		args.idleConns = i
@@ -84,5 +91,12 @@ func Verbose(i bool) Option {
 func Debug(i bool) Option {
 	return func(args *IGet) {
 		args.debug = i
+	}
+}
+
+// URL sets the URL to retrieve
+func URL(i string) Option {
+	return func(args *IGet) {
+		args.url = i
 	}
 }

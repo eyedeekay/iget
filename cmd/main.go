@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	_ "github.com/eyedeekay/iget"
+	i "github.com/eyedeekay/iget"
 )
 
 var (
@@ -26,10 +26,32 @@ var (
 )
 
 func main() {
-	iget, ierr := NewIGet()
-	if b, e := iget.GetString(address); e != nil {
-		fmt.Printf(e.Error())
+    flag.Parse()
+	if iget, ierr := i.NewIGet(
+		i.Lifespan(*destLifespan),
+		i.Timeout(*timeoutTime),
+		i.Length(*tunnelLength),
+		i.Inbound(*inboundTunnels),
+		i.Outbound(*outboundTunnels),
+		i.KeepAlives(*keepAlives),
+		i.Idles(*idleConns),
+		i.InboundBackups(*inboundBackups),
+		i.OutboundBackups(*outboundBackups),
+		i.Debug(*debugConnection),
+		i.URL(*address),
+		i.SamHost(*samAddrString),
+		i.SamPort(*samPortString),
+	); ierr != nil {
+		fmt.Printf(ierr.Error())
 	} else {
-		fmt.Printf("%s", b)
+		if r, e := iget.Request(); e != nil {
+			fmt.Printf(ierr.Error())
+		} else {
+			if b, e := iget.DoString(r); e != nil {
+				fmt.Printf(e.Error())
+			} else {
+				fmt.Printf("%s", b)
+			}
+		}
 	}
 }

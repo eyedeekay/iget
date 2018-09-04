@@ -6,13 +6,17 @@ import (
 )
 
 func TestIGet(t *testing.T) {
-	if ic, e := NewIGet(Debug(true)); e != nil {
+	if ic, e := NewIGet(Length(1), URL("http://i2p-projekt.i2p"), Inbound(15), Debug(true)); e != nil {
 		t.Fatal(e.Error())
 	} else {
-		if b, e := ic.Get("http://i2p-projekt.i2p"); e != nil {
+		if r, e := ic.Request(); e != nil {
 			t.Fatal(e.Error())
 		} else {
-			log.Println(b)
+			if b, e := ic.DoString(r); e != nil {
+				t.Fatal(e.Error())
+			} else {
+				log.Println(b)
+			}
 		}
 	}
 }

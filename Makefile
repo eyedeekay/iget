@@ -32,3 +32,21 @@ clean:
 deps:
 	go get -u github.com/eyedeekay/gosam
 	go get -u github.com/eyedeekay/iget
+
+README.md:
+	@echo "# iget" | tee README.md
+	@echo "i2p terminal http client." | tee -a README.md
+	@echo ""
+	@echo "## to build:"
+	@echo ""
+	@echo "        make deps build"
+	@echo ""
+	@echo "## to use:"
+	@echo ""
+	./bin/iget --help
+	@echo ""
+
+rcl:
+	rm -f README.md
+
+re: rcl README.md
