@@ -31,7 +31,7 @@ func TestIGetFile(t *testing.T) {
 		URL("http://i2p-projekt.i2p"),
 		Inbound(15),
 		Debug(false),
-        Output("file.html"),
+		Output("file.html"),
 	); e != nil {
 		t.Fatal(e.Error())
 	} else {

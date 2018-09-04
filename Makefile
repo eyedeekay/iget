@@ -23,6 +23,10 @@ fmt:
 lint:
 	find . -path ./.go -prune -o -name '*.go' -exec golint {} \;
 
+# This is just to make sure that I don't leave unnecessary crap behind in the code.
+checkuses:
+	find . -path ./.go -prune -o -name '*.go' -exec grep Do {} \;
+
 $(OUTFOLDER):
 	mkdir -p $(OUTFOLDER)
 
@@ -46,7 +50,11 @@ README.md:
 	@echo "some disadvantages, as follows:" | tee -a $(PWD)/README.md
 	@echo "" | tee -a $(PWD)/README.md
 	@echo "Wherever possible, short arguments will mirror their curl equivalents." | tee -a $(PWD)/README.md
-	@echo "However, I'm not trying to implement every single curl option." | tee -a $(PWD)/README.md
+	@echo "However, I'm not trying to implement every single curl option, and if" | tee -a $(PWD)/README.md
+	@echo "there are arguments that are labeled differently between curl and eepget," | tee -a $(PWD)/README.md
+	@echo "eepget options will be used instead. I haven't decided if I want it to be" | tee -a $(PWD)/README.md
+	@echo "able to spider eepsites on it's own, but I'm leaning toward no. That's what" | tee -a $(PWD)/README.md
+	@echo "lynx and grep are for." | tee -a $(PWD)/README.md
 	@echo "" | tee -a $(PWD)/README.md
 	@echo "### Advantages:" | tee -a $(PWD)/README.md
 	@echo "These advantages motivated development. More may emerge as it continues." | tee -a $(PWD)/README.md
@@ -54,13 +62,14 @@ README.md:
 	@echo "  - uses the SAM API to prevent destination-reuse for different sites" | tee -a $(PWD)/README.md
 	@echo "  - uses the SAM API directly(not forwarding) so it can't leak information" | tee -a $(PWD)/README.md
 	@echo "    to clearnet services" | tee -a $(PWD)/README.md
-	@echo "  - inline options to configure i2cp, so for example we can have 8 tunnels " | tee -a $(PWD)/README.md
+	@echo "  - inline options to configure i2cp, so for example we can have 8 tunnels" | tee -a $(PWD)/README.md
 	@echo "    in and 2 tunnels out" | tee -a $(PWD)/README.md
 	@echo "" | tee -a $(PWD)/README.md
 	@echo "### Disadvantages:" | tee -a $(PWD)/README.md
-	@echo "Only one I know of so far." | tee -a $(PWD)/README.md
+	@echo "Only two I know of so far." | tee -a $(PWD)/README.md
 	@echo "" | tee -a $(PWD)/README.md
 	@echo "  - marginally slower, due to tunnel-creation at runtime." | tee -a $(PWD)/README.md
+	@echo "  - a few missing options compared to eepget" | tee -a $(PWD)/README.md
 	@echo "" | tee -a $(PWD)/README.md
 	@echo "## to build:" | tee -a $(PWD)/README.md
 	@echo "" | tee -a $(PWD)/README.md

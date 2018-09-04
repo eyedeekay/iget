@@ -55,7 +55,7 @@ func (i *IGet) Do(req *http.Request) (*http.Response, error) {
 }
 
 // DoBytes does a request and returns the body of a response as bytes.
-// Eventually, it will be unused in iget, it's here for a hypothetical API and testing.
+// it is unused in iget, it's here for a hypothetical API and testing.
 func (i *IGet) DoBytes(req *http.Request) ([]byte, error) {
 	var b []byte
 	var err error
@@ -71,7 +71,7 @@ func (i *IGet) DoBytes(req *http.Request) ([]byte, error) {
 }
 
 // DoString does a request, converts the body to bytes, then returns the body of a response as a string.
-// Eventually, it will be unused in iget, it's here for a hypothetical API and testing.
+// it is unused in iget, it's here for a hypothetical API and testing.
 func (i *IGet) DoString(req *http.Request) (string, error) {
 	b, e := i.DoBytes(req)
 	if e != nil {
