@@ -35,6 +35,7 @@ Only two I know of so far.
 ## to use:
 
 ```
+flag needs an argument: -h
 Usage of ./bin/iget:
   -bridge-addr string
     	host:port of the SAM bridge. Overrides bridge-host/bridge-port. (default "127.0.0.1:7656")
@@ -48,16 +49,26 @@ Usage of ./bin/iget:
     	Print connection debug info
   -disable-keepalives
     	Disable keepalives
+  -e string
+    	Set the etag header, not enabled yet, will break when used.
+  -h value
+    	Add a header to the request in the form key=value
   -idle-conns int
     	Maximium idle connections per host (default 4)
   -in-backups int
     	Inbound Backup Count (default 3)
   -in-tunnels int
     	Inbound Tunnel Count (default 8)
+  -l string
+    	Linelength(not enabled, provided so it doesn't break places where eepGet is already used, pipe it to something else to control line length, a wrapper will do this for iget)
   -lifespan int
     	Lifespan of an idle i2p destination in minutes (default 6)
+  -m string
+    	Marksize(not enabled, provided so it doesn't break places where eepGet is already used)
   -method string
     	Request method (default "GET")
+  -n string
+    	Retries(not enabled yet, provided so it doesn't break places where eepGet is already used)
   -o string
     	Output path (default "-")
   -out-backups int
@@ -74,9 +85,13 @@ Usage of ./bin/iget:
     	Timeout duration in minutes (default 6)
   -tunlength int
     	Tunnel Length (default 3)
+  -u string
+    	Username for authenticating to SAM(not enabled yet, provided so it doesn't break places where eepGet is already used, will break non-empty usernames)
   -url string
     	i2p URL you want to retrieve
   -verbose
     	Print additional info about the process
+  -x string
+    	Password for authenticating to SAM(not enabled yet, provided so it doesn't break places where eepGet is already used, will break non-empty passwords)
 ```
 
