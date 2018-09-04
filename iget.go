@@ -85,10 +85,10 @@ func (i *IGet) Request(setters ...RequestOption) (*http.Request, error) {
 }
 
 func (i *IGet) PrintResponse(*http.Response) string {
-    if i.verb {
+	if i.verb {
 
-    }
-    return ""
+	}
+	return ""
 }
 
 // NewIGet is an IGet Client
