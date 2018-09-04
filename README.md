@@ -37,6 +37,8 @@ Only two I know of so far.
 ```
 Usage of ./bin/iget:
   -bridge-addr string
+    	host:port of the SAM bridge. Inactive at the moment. (default "127.0.0.1:7656")
+  -bridge-host string
     	host: of the SAM bridge (default "127.0.0.1")
   -bridge-port string
     	:port of the SAM bridge (default "7656")
@@ -56,12 +58,18 @@ Usage of ./bin/iget:
     	Lifespan of an idle i2p destination in minutes (default 6)
   -method string
     	Request method (default "GET")
+  -o string
+    	Output path (default "-")
   -out-backups int
     	Inbound Backup Count (default 3)
   -out-tunnels int
     	Inbound Tunnel Count (default 8)
   -output string
-    	Output path(Not enabled yet, use pipes) (default "-")
+    	Output path (default "-")
+  -p string
+    	host:port of the SAM bridge. Inactive at the moment. (default "127.0.0.1:7656")
+  -t int
+    	Timeout duration in minutes (default 6)
   -timeout int
     	Timeout duration in minutes (default 6)
   -tunlength int
