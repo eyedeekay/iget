@@ -65,11 +65,11 @@ func (i *IGet) DoBytes(req *http.Request) ([]byte, error) {
 }
 
 func (i *IGet) DoString(req *http.Request) (string, error) {
-    if b, e := i.DoBytes(req); e != nil {
-        return "", e
-    }else{
-        return string(b), nil
-    }
+	if b, e := i.DoBytes(req); e != nil {
+		return "", e
+	} else {
+		return string(b), nil
+	}
 }
 
 // Request generates an *http.Request

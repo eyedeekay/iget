@@ -38,10 +38,10 @@ func Outbound(i int) Option {
 	}
 }
 
-// Idles tells the max number of idle connections to allow
-func KeepAlives(i int) Option {
+// KeepAlives tells to allow keepalives
+func KeepAlives(i bool) Option {
 	return func(args *IGet) {
-		args.idleConns = i
+		args.keepAlives = i
 	}
 }
 

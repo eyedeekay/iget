@@ -34,19 +34,19 @@ deps:
 	go get -u github.com/eyedeekay/iget
 
 README.md:
-	@echo "# iget" | tee README.md
-	@echo "i2p terminal http client." | tee -a README.md
-	@echo ""
-	@echo "## to build:"
-	@echo ""
-	@echo "        make deps build"
-	@echo ""
-	@echo "## to use:"
-	@echo ""
-	./bin/iget --help
-	@echo ""
+	@echo "# iget" | tee $(PWD)/README.md
+	@echo "i2p terminal http client." | tee -a $(PWD)/README.md
+	@echo "" | tee -a $(PWD)/README.md
+	@echo "## to build:" | tee -a $(PWD)/README.md
+	@echo "" | tee -a $(PWD)/README.md
+	@echo "        make deps build" | tee -a $(PWD)/README.md
+	@echo "" | tee -a $(PWD)/README.md
+	@echo "## to use:" | tee -a $(PWD)/README.md
+	@echo "" | tee -a $(PWD)/README.md
+	./bin/iget --help | tee -a $(PWD)/README.md
+	@echo "" | tee -a $(PWD)/README.md
 
 rcl:
-	rm -f README.md
+	rm -f $(PWD)/README.md
 
 re: rcl README.md

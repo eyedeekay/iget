@@ -8,9 +8,9 @@ import (
 type RequestOption func(*http.Request)
 
 // Method sets the request method
-func Method(i string) RequestOption {
-	return func(args *http.Request) {
-		args.Method = i
+func Method(i string) Option {
+	return func(args *IGet) {
+		args.method = i
 	}
 }
 
