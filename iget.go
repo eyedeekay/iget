@@ -20,6 +20,9 @@ type IGet struct {
 	debug   bool
 	verb    bool
 
+	username string
+	password string
+
 	outputPath string
 
 	method  string
@@ -105,18 +108,16 @@ func (i *IGet) PrintResponse(c *http.Response) string {
 		}
 		fmt.Printf("%s", b)
 		return string(b)
-	} else {
-		b, err := ioutil.ReadAll(c.Body)
-		if err != nil {
-			return ""
-		}
-		err = ioutil.WriteFile(i.outputPath, b, 0644)
-		if err != nil {
-			return ""
-		}
-		return string(b)
 	}
-	return ""
+	b, err := ioutil.ReadAll(c.Body)
+	if err != nil {
+		return ""
+	}
+	err = ioutil.WriteFile(i.outputPath, b, 0644)
+	if err != nil {
+		return ""
+	}
+	return string(b)
 }
 
 // NewIGet is an IGet Client

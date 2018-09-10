@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"strings"
 )
 import (
@@ -75,6 +76,12 @@ func main() {
 	ssamAddrString := flag.String("p", "127.0.0.1:7656", "host:port of the SAM bridge. Overrides bridge-host/bridge-port.")
 	flag.Var(&headers, "h", "Add a header to the request in the form key=value")
 	flag.Parse()
+	if args := flag.Args(); len(args) == 1 {
+		*address = args[0]
+	}
+	if *address == "" {
+		log.Fatal("Fatal error, no url supplied by user (pass -url or an address argument)")
+	}
 	if *soutput != "-" {
 		output = *soutput
 	} else {
