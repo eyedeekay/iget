@@ -89,3 +89,6 @@ re: rcl README.md
 
 fire:
 	./bin/iget -url http://i2p-projekt.i2p
+
+fire2:
+	./bin/iget http://566niximlxdzpanmn4qouucvua3k7neniwss47li5r6ugoertzuq.b32.i2p

@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net/url"
 	"strings"
 )
 import (
@@ -81,6 +82,10 @@ func main() {
 	}
 	if *address == "" {
 		log.Fatal("Fatal error, no url supplied by user (pass -url or an address argument)")
+	}
+	if _, err := url.ParseRequestURI(*address); err != nil {
+		temp := "http://" + *address
+		*address = temp
 	}
 	if *soutput != "-" {
 		output = *soutput
