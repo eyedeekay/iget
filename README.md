@@ -36,7 +36,6 @@ lynx and grep are for.
 ## to use:
 
 ```
-flag needs an argument: -h
 Usage of ./bin/iget:
   --lineLength string
     	Linelength(not enabled, provided so it doesn't break places where eepGet is already used, pipe it to something else to control line length, a wrapper will do this for iget)

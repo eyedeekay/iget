@@ -28,7 +28,7 @@ type IGet struct {
 	method  string
 	url     string
 	body    string
-	headers []string
+	//headers []string
 
 	destLifespan    int
 	timeoutTime     int

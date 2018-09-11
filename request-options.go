@@ -2,6 +2,7 @@ package iget
 
 import (
 	"net/http"
+	"strings"
 )
 
 // RequestOption is helpful for generating requests
@@ -21,14 +22,17 @@ func Close(i bool) RequestOption {
 	}
 }
 
-/*
-// Header adds a request header
-func Header(i string) RequestOption {
+// Headers adds a request header
+func Headers(i []string) RequestOption {
 	return func(args *http.Request) {
-		args.Header = i
+		for _, x := range i {
+			//args.headers = append(args.headers, x)
+			if len(strings.Split(x, "=")) == 2 {
+				args.Header.Add(strings.Split(x, "=")[0], strings.Split(x, "=")[1])
+			}
+		}
 	}
 }
-*/
 
 /*
 // OPT sets the request opt

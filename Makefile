@@ -84,7 +84,7 @@ README.md:
 	@echo "## to use:" | tee -a $(PWD)/README.md
 	@echo "" | tee -a $(PWD)/README.md
 	@echo '```' | tee -a $(PWD)/README.md
-	./bin/iget -h 2>&1 | tee -a $(PWD)/README.md
+	./bin/iget -help 2>&1 | tee -a $(PWD)/README.md
 	@echo '```' | tee -a $(PWD)/README.md
 	@echo "" | tee -a $(PWD)/README.md
 

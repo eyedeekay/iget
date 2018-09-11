@@ -78,6 +78,8 @@ func main() {
 	soutput := flag.String("o", "-", "Output path")
 	ssamAddrString := flag.String("p", "127.0.0.1:7656", "host:port of the SAM bridge. Overrides bridge-host/bridge-port.")
 	flag.Var(&headers, "h", "Add a header to the request in the form key=value")
+	flag.Var(&headers, "header", "Add a header to the request in the form key=value")
+	flag.Var(&headers, "-header", "Add a header to the request in the form key=value")
 	flag.Parse()
 	if args := flag.Args(); len(args) == 1 {
 		*address = args[0]
@@ -138,6 +140,7 @@ func main() {
 		fmt.Printf(ierr.Error())
 	} else {
 		if r, e := iget.Request(
+			i.Headers(headers),
 			i.Close(*closer),
 		); e != nil {
 			fmt.Printf(ierr.Error())
