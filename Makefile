@@ -98,3 +98,9 @@ fire:
 
 fire2:
 	./bin/iget http://566niximlxdzpanmn4qouucvua3k7neniwss47li5r6ugoertzuq.b32.i2p
+
+fire3:
+	eepget -l 80 "http://566niximlxdzpanmn4qouucvua3k7neniwss47li5r6ugoertzuq.b32.i2p"
+
+fire4:
+	eepget -p 127.0.0.1:4444 -l 80 "http://566niximlxdzpanmn4qouucvua3k7neniwss47li5r6ugoertzuq.b32.i2p"
