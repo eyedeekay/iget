@@ -44,7 +44,8 @@ if [ ! -z "${p}" ]; then
 fi
 
 if [ ! -z "${l}" ]; then
-    $(which iget) $args | fold -w "$l" -s -
+    argsf=$(echo $args | sed "s|-l $l||g" | sed "s|-lineLen $1||g")
+    $(which iget) $argsf | fold -w "$l" -s -
 else
     $(which iget) $args
 fi

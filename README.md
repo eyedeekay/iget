@@ -38,6 +38,8 @@ lynx and grep are for.
 ```
 flag needs an argument: -h
 Usage of ./bin/iget:
+  --lineLength string
+    	Linelength(not enabled, provided so it doesn't break places where eepGet is already used, pipe it to something else to control line length, a wrapper will do this for iget)
   -bridge-addr string
     	host:port of the SAM bridge. Overrides bridge-host/bridge-port. (default "127.0.0.1:7656")
   -bridge-host string
@@ -64,6 +66,8 @@ Usage of ./bin/iget:
     	Linelength(not enabled, provided so it doesn't break places where eepGet is already used, pipe it to something else to control line length, a wrapper will do this for iget)
   -lifespan int
     	Lifespan of an idle i2p destination in minutes (default 6)
+  -lineLength string
+    	Linelength(not enabled, provided so it doesn't break places where eepGet is already used, pipe it to something else to control line length, a wrapper will do this for iget)
   -m string
     	Marksize(not enabled, provided so it doesn't break places where eepGet is already used)
   -method string
