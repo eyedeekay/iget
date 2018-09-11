@@ -6,13 +6,6 @@ This is a highly-configurable curl/wget like client which exclusively works
 over i2p. It works via the SAM API which means it has some advantages and
 some disadvantages, as follows:
 
-Wherever possible, short arguments will mirror their curl equivalents.
-However, I'm not trying to implement every single curl option, and if
-there are arguments that are labeled differently between curl and eepget,
-eepget options will be used instead. I haven't decided if I want it to be
-able to spider eepsites on it's own, but I'm leaning toward no. That's what
-lynx and grep are for.
-
 ### Advantages:
 These advantages motivated development. More may emerge as it continues.
 
@@ -26,7 +19,15 @@ These advantages motivated development. More may emerge as it continues.
 Only two I know of so far.
 
   - marginally slower, due to tunnel-creation at runtime.
-  - a few missing options compared to eepget
+  - a few missing options compared to eepget(These are being handled by
+    including a wrapper, which will be fully compatible with eepget)
+
+Wherever possible, short arguments will mirror their curl equivalents.
+However, I'm not trying to implement every single curl option, and if
+there are arguments that are labeled differently between curl and eepget,
+eepget options will be used instead. I haven't decided if I want it to be
+able to spider eepsites on it's own, but I'm leaning toward no. That's what
+lynx and grep are for.
 
 ## to build:
 

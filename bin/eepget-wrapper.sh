@@ -1,25 +1,50 @@
 #! /usr/bin/env sh
-while [[ $# > 1 ]]
-do
-key="$1"
 
-case $key in
-    -p|--proxy)
-    DISREGARD_PROXY="$2"
-    shift
-    ;;
-    *)
-    NEW_ARGS="$2"
-    shift
-    ;;
-esac
-shift # past argument or value
+echo "WARNING: YOU SHOULD UPDATE YOUR SCRIPTS. This wrapper is provided for your
+convenience. If you are using it, it means that you have replaced the real
+eepget with this wrapper. It is automatically substituting settings, and this
+is the only warning it can give you."
+
+argslist=$@
+
+while getopts ":p:l:" o; do
+    case "${o}" in
+        p)
+            p=${OPTARG}
+            ;;
+        proxy_host)
+            p=${OPTARG}
+            ;;
+        l)
+            l=${OPTARG}
+            ;;
+        lineLen)
+            l=${OPTARG}
+            ;;
+        *)
+            ;;
+    esac
 done
+shift $((OPTIND-1))
 
-if "x$DISREGARD_PROXY" != "x"; then
-    echo "Disregarding the http proxy $DISREGARD_PROXY, this uses SAM"
+if [ ! -z "${p}" ]; then
+    if [ "$p" = "127.0.0.1:4444" ]; then
+        p="127.0.0.1:7656"
+        args=$(echo $argslist | sed "s|127.0.0.1:4444|$p|g" )
+    elif [ "$p" = "localhost:4444" ]; then
+        p="localhost:7656"
+        args=$(echo $argslist | sed "s|localhost:4444|$p|g" )
+    elif [ "$p" = "http://127.0.0.1:4444" ]; then
+        p="http://127.0.0.1:7656"
+        args=$(echo $argslist | sed "s|http://127.0.0.1:4444|$p|g" )
+    elif [ "$p" = "http://localhost:4444" ]; then
+        p="http://localhost:7656"
+        args=$(echo $argslist | sed "s|http://localhost:4444|$p|g" )
+    fi
 fi
 
-NEW_ARGS=""
-
-iget $@ #| fold -w 80 -s -
+if [ ! -z "${l}" ]; then
+    $(which iget) $args | fold -w "$l" -s -
+else
+    $(which iget) $args
+fi
