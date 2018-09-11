@@ -18,7 +18,7 @@ install:
 	install -m755 bin/iget /usr/bin/iget
 
 install-wrapper:
-	ls $(which eepget).bak || which eepget && mv $(shell which eepget) $(shell which eepget).bak; true
+	ls $(shell which eepget).bak || which eepget && mv $(shell which eepget) $(shell which eepget).bak; true
 	install -m755 bin/eepget-wrapper.sh /usr/bin/eepget-wrapper.sh
 	ln -sf /usr/bin/eepget-wrapper.sh /usr/bin/eepget
 
