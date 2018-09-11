@@ -56,14 +56,14 @@ var (
 	closer = flag.Bool("close", true, "Close the request immediately after reading the response")
 
 	// compatibility options
-	linelength  = flag.String("l", "", "Linelength(not enabled, provided so it doesn't break places where eepGet is already used, pipe it to something else to control line length, a wrapper will do this for iget)")
-	linelength2 = flag.String("lineLength", "", "Linelength(not enabled, provided so it doesn't break places where eepGet is already used, pipe it to something else to control line length, a wrapper will do this for iget)")
-	linelength3 = flag.String("-lineLength", "", "Linelength(not enabled, provided so it doesn't break places where eepGet is already used, pipe it to something else to control line length, a wrapper will do this for iget)")
-	etag        = flag.String("e", "", "Set the etag header, not enabled yet, will break when used.")
-	marksize    = flag.String("m", "", "Marksize(not enabled, provided so it doesn't break places where eepGet is already used)")
-	retries     = flag.String("n", "", "Retries(not enabled yet, provided so it doesn't break places where eepGet is already used)")
-	user        = flag.String("u", "", "Username for authenticating to SAM(not enabled yet, provided so it doesn't break places where eepGet is already used, will break non-empty usernames)")
-	pass        = flag.String("x", "", "Password for authenticating to SAM(not enabled yet, provided so it doesn't break places where eepGet is already used, will break non-empty passwords)")
+	_       = flag.String("l", "", "Linelength(not enabled, provided so it doesn't break places where eepGet is already used, pipe it to something else to control line length, a wrapper will do this for iget)")
+	_       = flag.String("lineLength", "", "Linelength(not enabled, provided so it doesn't break places where eepGet is already used, pipe it to something else to control line length, a wrapper will do this for iget)")
+	_       = flag.String("-lineLength", "", "Linelength(not enabled, provided so it doesn't break places where eepGet is already used, pipe it to something else to control line length, a wrapper will do this for iget)")
+	etag    = flag.String("e", "", "Set the etag header, not enabled yet, will break when used.")
+	_       = flag.String("m", "", "Marksize(not enabled, provided so it doesn't break places where eepGet is already used)")
+	retries = flag.String("n", "", "Retries(not enabled yet, provided so it doesn't break places where eepGet is already used)")
+	user    = flag.String("u", "", "Username for authenticating to SAM(not enabled yet, provided so it doesn't break places where eepGet is already used, will break non-empty usernames)")
+	pass    = flag.String("x", "", "Password for authenticating to SAM(not enabled yet, provided so it doesn't break places where eepGet is already used, will break non-empty passwords)")
 )
 
 var (
