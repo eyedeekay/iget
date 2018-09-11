@@ -3,7 +3,7 @@
 echo "WARNING: YOU SHOULD UPDATE YOUR SCRIPTS. This wrapper is provided for your
 convenience. If you are using it, it means that you have replaced the real
 eepget with this wrapper. It is automatically substituting settings, and this
-is the only warning it can give you."
+is the only warning it can give you." 1>&2
 
 argslist=$@
 
