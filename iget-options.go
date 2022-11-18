@@ -10,6 +10,20 @@ func Lifespan(i int) Option {
 	}
 }
 
+// MarkSize
+func MarkSize(i int) Option {
+	return func(args *IGet) {
+		args.markSize = i
+	}
+}
+
+// Linelength is the maximum length of an output line.
+func LineLength(i int) Option {
+	return func(args *IGet) {
+		args.lineLength = i
+	}
+}
+
 // Timeout defines the maximum timeout time
 func Timeout(i int) Option {
 	return func(args *IGet) {
@@ -80,9 +94,30 @@ func Debug(i bool) Option {
 	}
 }
 
+// Continue tells iget to resume a previously started download
+func Continue(i bool) Option {
+	return func(args *IGet) {
+		args.continueDownload = i
+	}
+}
+
 // URL sets the URL to retrieve
 func URL(i string) Option {
 	return func(args *IGet) {
 		args.url = i
+	}
+}
+
+// Username sets the SAM AUTH username
+func Username(i string) Option {
+	return func(args *IGet) {
+		args.username = i
+	}
+}
+
+// Password sets the SAM AUTH password
+func Password(i string) Option {
+	return func(args *IGet) {
+		args.username = i
 	}
 }

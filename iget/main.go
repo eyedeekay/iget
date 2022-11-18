@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"log"
 	"net/url"
+	"os"
 	"strings"
-)
-import (
+	"syscall"
+
 	i "github.com/eyedeekay/iget"
 )
 
@@ -56,14 +57,15 @@ var (
 	closer = flag.Bool("close", true, "Close the request immediately after reading the response")
 
 	// compatibility options
-	_       = flag.String("l", "", "Linelength(not enabled, provided so it doesn't break places where eepGet is already used, pipe it to something else to control line length, a wrapper will do this for iget)")
-	_       = flag.String("lineLength", "", "Linelength(not enabled, provided so it doesn't break places where eepGet is already used, pipe it to something else to control line length, a wrapper will do this for iget)")
-	_       = flag.String("-lineLength", "", "Linelength(not enabled, provided so it doesn't break places where eepGet is already used, pipe it to something else to control line length, a wrapper will do this for iget)")
-	etag    = flag.String("e", "", "Set the etag header, not enabled yet, will break when used.")
-	_       = flag.String("m", "", "Marksize(not enabled, provided so it doesn't break places where eepGet is already used)")
-	retries = flag.String("n", "", "Retries(not enabled yet, provided so it doesn't break places where eepGet is already used)")
-	user    = flag.String("u", "", "Username for authenticating to SAM(not enabled yet, provided so it doesn't break places where eepGet is already used, will break non-empty usernames)")
-	pass    = flag.String("x", "", "Password for authenticating to SAM(not enabled yet, provided so it doesn't break places where eepGet is already used, will break non-empty passwords)")
+	ll       = flag.Int("l", 80, "Control line length of output")
+	ll2      = flag.Int("lineLength", 0, "Control line length of output")
+	etag     = flag.String("e", "", "Set the etag header, not enabled yet, will break when used.")
+	marksize = flag.Int("m", 0, "Show download progress while it's happening, any number greater than zero enables")
+	retries  = flag.Int("n", 3, "Retries(not enabled yet, provided so it doesn't break places where eepGet is already used)")
+	user     = flag.String("u", "", "Username for authenticating to SAM(not enabled yet, provided so it doesn't break places where eepGet is already used, will break non-empty usernames)")
+	pass     = flag.String("x", "", "Password for authenticating to SAM(not enabled yet, provided so it doesn't break places where eepGet is already used, will break non-empty passwords)")
+	//
+	cont = flag.Bool("c", true, "Resume file from previous download")
 )
 
 var (
@@ -79,8 +81,17 @@ func main() {
 	ssamAddrString := flag.String("p", "127.0.0.1:7656", "host:port of the SAM bridge. Overrides bridge-host/bridge-port.")
 	flag.Var(&headers, "h", "Add a header to the request in the form key=value")
 	flag.Var(&headers, "header", "Add a header to the request in the form key=value")
-	flag.Var(&headers, "-header", "Add a header to the request in the form key=value")
 	flag.Parse()
+	if !*verboseLogging {
+		DevNull, _ := os.Open(os.DevNull)
+		err := syscall.Dup2(int(DevNull.Fd()), int(os.Stderr.Fd()))
+		if err != nil {
+			panic(err)
+		}
+	}
+	if *ll2 != 0 {
+		ll = ll2
+	}
 	if args := flag.Args(); len(args) == 1 {
 		*address = args[0]
 	}
@@ -136,19 +147,28 @@ func main() {
 		i.SamPort(*samPortString),
 		i.Method(*method),
 		i.Output(output),
+		i.LineLength(*ll),
+		i.Verbose(*verboseLogging),
+		i.Continue(*cont),
+		i.Username(*user),
+		i.Password(*pass),
+		i.MarkSize(*marksize),
 	); ierr != nil {
 		fmt.Printf(ierr.Error())
 	} else {
-		if r, e := iget.Request(
-			i.Headers(headers),
-			i.Close(*closer),
-		); e != nil {
-			fmt.Printf(ierr.Error())
-		} else {
-			if b, e := iget.Do(r); e != nil {
-				fmt.Printf(e.Error())
+		for counter := 0; counter < *retries; counter++ {
+			if r, e := iget.Request(
+				i.Headers(headers),
+				i.Close(*closer),
+			); e != nil {
+				fmt.Printf(ierr.Error())
 			} else {
-				iget.PrintResponse(b)
+				if b, e := iget.Do(r); e != nil {
+					fmt.Printf(e.Error())
+				} else {
+					iget.PrintResponse(b)
+					break
+				}
 			}
 		}
 	}

@@ -3,17 +3,19 @@ package iget
 import (
 	"crypto/tls"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"path"
 	"strings"
 	"time"
+
+	"github.com/dustin/go-humanize"
+	"github.com/eyedeekay/goSam"
 )
 
-import (
-	"github.com/eyedeekay/gosam"
-)
-
-//IGet is an IGet client
+// IGet is an IGet client
 type IGet struct {
 	samHost string
 	samPort string
@@ -43,19 +45,54 @@ type IGet struct {
 	client    *http.Client
 	transport *http.Transport
 	samClient *goSam.Client
+
+	lineLength       int
+	continueDownload bool
+	markSize         int
 }
 
 func (i IGet) samaddress() string {
 	return i.samHost + ":" + i.samPort
 }
 
+type WriteCounter struct {
+	Total uint64
+}
+
 // Do "does" a request and returns a response. It's just a wrapper for http/client.Do
 func (i *IGet) Do(req *http.Request) (*http.Response, error) {
+	if i.markSize != 0 {
+		if i.outputPath == "-" || i.outputPath == "stdout" {
+			i.outputPath = path.Base(req.URL.String())
+		}
+
+	}
 	c, e := i.client.Do(req)
 	if e != nil {
 		return nil, e
 	}
+	if i.outputPath != "-" && i.outputPath != "stdout" {
+		tempDestinationPath := i.outputPath
+		f, _ := os.OpenFile(tempDestinationPath, os.O_CREATE|os.O_WRONLY, 0644)
+		RangeBottom := i.DownloadedFileSize()
+		counter := &WriteCounter{
+			Total: uint64(RangeBottom),
+		}
+		io.Copy(f, io.TeeReader(c.Body, counter))
+	}
 	return c, e
+}
+
+func (wc *WriteCounter) Write(p []byte) (int, error) {
+	n := len(p)
+	wc.Total += uint64(n)
+	wc.PrintProgress()
+	return n, nil
+}
+
+func (wc WriteCounter) PrintProgress() {
+	fmt.Fprintf(os.Stdout, "\r%s", strings.Repeat(" ", 35))
+	fmt.Fprintf(os.Stdout, "\rDownloading... %s complete", humanize.Bytes(wc.Total))
 }
 
 // DoBytes does a request and returns the body of a response as bytes.
@@ -90,34 +127,50 @@ func (i *IGet) Request(setters ...RequestOption) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
+	if i.continueDownload {
+		RangeBottom := i.DownloadedFileSize()
+		if RangeBottom > 0 {
+			r.Header.Add("Range", fmt.Sprintf("bytes=%d-", RangeBottom))
+		}
+	}
 	for _, setter := range setters {
 		setter(r)
 	}
 	return r, nil
 }
 
+func (i *IGet) DownloadedFileSize() int64 {
+	f, e := os.Stat(i.outputPath)
+	if e != nil {
+		return 0
+	}
+	return f.Size()
+}
+
 // PrintResponse routes the output
 func (i *IGet) PrintResponse(c *http.Response) string {
-	if i.verb {
-
+	if i.markSize != 0 {
+		if i.outputPath == "-" || i.outputPath == "stdout" {
+			i.outputPath = path.Base(c.Request.URL.String())
+		}
 	}
 	if i.outputPath == "-" || i.outputPath == "stdout" {
 		b, err := ioutil.ReadAll(c.Body)
 		if err != nil {
 			return ""
 		}
-		fmt.Printf("%s", b)
+		a := []rune(string(b))
+		for index, r := range a {
+			if index > 0 && (index+1)%i.lineLength == 0 {
+				fmt.Printf("%c\n", r)
+			} else {
+				fmt.Printf("%c", r)
+			}
+		}
+		//fmt.Printf("%s", b)
 		return string(b)
 	}
-	b, err := ioutil.ReadAll(c.Body)
-	if err != nil {
-		return ""
-	}
-	err = ioutil.WriteFile(i.outputPath, b, 0644)
-	if err != nil {
-		return ""
-	}
-	return string(b)
+	return ""
 }
 
 // NewIGet is an IGet Client
@@ -156,6 +209,8 @@ func NewIGet(setters ...Option) (*IGet, error) {
 		goSam.SetOutQuantity(uint(i.outboundTunnels)),
 		goSam.SetInBackups(uint(i.inboundBackups)),
 		goSam.SetOutBackups(uint(i.outboundBackups)),
+		goSam.SetUser(i.username),
+		goSam.SetPass(i.password),
 	)
 	if err != nil {
 		return nil, err
