@@ -1,5 +1,5 @@
 
-OUTFOLDER = $(PWD)/bin
+OUTFOLDER = $(PWD)/iget
 
 GOPATH = $(PWD)/.go
 
@@ -11,7 +11,7 @@ build: $(OUTFOLDER) fmt lint
 	GOOS=linux GOARCH=amd64 go build \
 		$(GO_COMPILER_OPTS) \
 		-o $(OUTFOLDER)/iget \
-		./cmd/main.go
+		$(OUTFOLDER)/main.go
 	@echo 'built'
 
 install:
@@ -84,7 +84,7 @@ README.md:
 	@echo "## to use:" | tee -a $(PWD)/README.md
 	@echo "" | tee -a $(PWD)/README.md
 	@echo '```' | tee -a $(PWD)/README.md
-	./bin/iget -help 2>&1 | tee -a $(PWD)/README.md
+	$(OUTFOLDER)/iget -help 2>&1 | tee -a $(PWD)/README.md
 	@echo '```' | tee -a $(PWD)/README.md
 	@echo "" | tee -a $(PWD)/README.md
 

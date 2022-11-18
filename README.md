@@ -36,15 +36,14 @@ lynx and grep are for.
 ## to use:
 
 ```
-Usage of ./bin/iget:
-  --lineLength string
-    	Linelength(not enabled, provided so it doesn't break places where eepGet is already used, pipe it to something else to control line length, a wrapper will do this for iget)
+Usage of /home/idk/go/src/github.com/eyedeekay/iget/iget/iget:
   -bridge-addr string
     	host:port of the SAM bridge. Overrides bridge-host/bridge-port. (default "127.0.0.1:7656")
   -bridge-host string
     	host: of the SAM bridge (default "127.0.0.1")
   -bridge-port string
     	:port of the SAM bridge (default "7656")
+  -c	Resume file from previous download (default true)
   -close
     	Close the request immediately after reading the response (default true)
   -conn-debug
@@ -55,24 +54,26 @@ Usage of ./bin/iget:
     	Set the etag header, not enabled yet, will break when used.
   -h value
     	Add a header to the request in the form key=value
+  -header value
+    	Add a header to the request in the form key=value
   -idle-conns int
     	Maximium idle connections per host (default 4)
   -in-backups int
     	Inbound Backup Count (default 3)
   -in-tunnels int
     	Inbound Tunnel Count (default 8)
-  -l string
-    	Linelength(not enabled, provided so it doesn't break places where eepGet is already used, pipe it to something else to control line length, a wrapper will do this for iget)
+  -l int
+    	Control line length of output (default 80)
   -lifespan int
     	Lifespan of an idle i2p destination in minutes (default 6)
-  -lineLength string
-    	Linelength(not enabled, provided so it doesn't break places where eepGet is already used, pipe it to something else to control line length, a wrapper will do this for iget)
-  -m string
-    	Marksize(not enabled, provided so it doesn't break places where eepGet is already used)
+  -lineLength int
+    	Control line length of output
+  -m int
+    	Show download progress while it's happening, any number greater than zero enables
   -method string
     	Request method (default "GET")
-  -n string
-    	Retries(not enabled yet, provided so it doesn't break places where eepGet is already used)
+  -n int
+    	Retries(not enabled yet, provided so it doesn't break places where eepGet is already used) (default 3)
   -o string
     	Output path (default "-")
   -out-backups int

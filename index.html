@@ -1,0 +1,192 @@
+<html>
+  <head>
+    <title>
+      iget
+    </title>
+    <meta name="author" content="eyedeekay" />
+    <meta name="description" content="ige" />
+    <meta name="keywords" content="master" />
+    <link rel="stylesheet" type="text/css" href="style.css" />
+    <link rel="stylesheet" type="text/css" href="showhider.css" />
+  </head>
+  <body>
+    <div id="navbar">
+      <a href="#shownav">
+        Show navigation
+      </a>
+      <div id="shownav">
+        <div id="hidenav">
+          <ul>
+            <li>
+              <a href="..">
+                Up one level ^
+              </a>
+            </li>
+            <li>
+              <a href="index.html">
+                index
+              </a>
+            </li>
+          </ul>
+          <br>
+          <a href="#hidenav">
+            Hide Navigation
+          </a>
+        </div>
+      </div>
+    </div>
+    <a id="returnhome" href="/">
+      /
+    </a>
+    <h1>
+      iget
+    </h1>
+    <p>
+      i2p terminal http client.
+    </p>
+    <h2>
+      description:
+    </h2>
+    <p>
+      This is a highly-configurable curl/wget like client which exclusively works
+      over i2p. It works via the SAM API which means it has some advantages and
+      some disadvantages, as follows:
+    </p>
+    <h3>
+      Advantages:
+    </h3>
+    <p>
+      These advantages motivated development. More may emerge as it continues.
+    </p>
+    <ul>
+      <li>
+        uses the SAM API to prevent destination-reuse for different sites
+      </li>
+      <li>
+        uses the SAM API directly(not forwarding) so it can&rsquo;t leak information
+        to clearnet services
+      </li>
+      <li>
+        inline options to configure i2cp, so for example we can have 8 tunnels
+        in and 2 tunnels out
+      </li>
+    </ul>
+    <h3>
+      Disadvantages:
+    </h3>
+    <p>
+      Only two I know of so far.
+    </p>
+    <ul>
+      <li>
+        marginally slower, due to tunnel-creation at runtime.
+      </li>
+      <li>
+        a few missing options compared to eepget(These are being handled by
+        including a wrapper, which will be fully compatible with eepget)
+      </li>
+    </ul>
+    <p>
+      Wherever possible, short arguments will mirror their curl equivalents.
+      However, I&rsquo;m not trying to implement every single curl option, and if
+      there are arguments that are labeled differently between curl and eepget,
+      eepget options will be used instead. I haven&rsquo;t decided if I want it to be
+      able to spider eepsites on it&rsquo;s own, but I&rsquo;m leaning toward no. That&rsquo;s what
+      lynx and grep are for.
+    </p>
+    <h2>
+      to build:
+    </h2>
+    <pre><code>    make deps build
+</code></pre>
+    <h2>
+      to use:
+    </h2>
+    <pre><code>Usage of /home/idk/go/src/github.com/eyedeekay/iget/iget/iget:
+  -bridge-addr string
+    	host:port of the SAM bridge. Overrides bridge-host/bridge-port. (default &quot;127.0.0.1:7656&quot;)
+  -bridge-host string
+    	host: of the SAM bridge (default &quot;127.0.0.1&quot;)
+  -bridge-port string
+    	:port of the SAM bridge (default &quot;7656&quot;)
+  -c	Resume file from previous download (default true)
+  -close
+    	Close the request immediately after reading the response (default true)
+  -conn-debug
+    	Print connection debug info
+  -disable-keepalives
+    	Disable keepalives
+  -e string
+    	Set the etag header, not enabled yet, will break when used.
+  -h value
+    	Add a header to the request in the form key=value
+  -header value
+    	Add a header to the request in the form key=value
+  -idle-conns int
+    	Maximium idle connections per host (default 4)
+  -in-backups int
+    	Inbound Backup Count (default 3)
+  -in-tunnels int
+    	Inbound Tunnel Count (default 8)
+  -l int
+    	Control line length of output (default 80)
+  -lifespan int
+    	Lifespan of an idle i2p destination in minutes (default 6)
+  -lineLength int
+    	Control line length of output
+  -m int
+    	Show download progress while it's happening, any number greater than zero enables
+  -method string
+    	Request method (default &quot;GET&quot;)
+  -n int
+    	Retries(not enabled yet, provided so it doesn't break places where eepGet is already used) (default 3)
+  -o string
+    	Output path (default &quot;-&quot;)
+  -out-backups int
+    	Inbound Backup Count (default 3)
+  -out-tunnels int
+    	Inbound Tunnel Count (default 8)
+  -output string
+    	Output path (default &quot;-&quot;)
+  -p string
+    	host:port of the SAM bridge. Overrides bridge-host/bridge-port. (default &quot;127.0.0.1:7656&quot;)
+  -t int
+    	Timeout duration in minutes (default 6)
+  -timeout int
+    	Timeout duration in minutes (default 6)
+  -tunlength int
+    	Tunnel Length (default 3)
+  -u string
+    	Username for authenticating to SAM(not enabled yet, provided so it doesn't break places where eepGet is already used, will break non-empty usernames)
+  -url string
+    	i2p URL you want to retrieve
+  -verbose
+    	Print additional info about the process
+  -x string
+    	Password for authenticating to SAM(not enabled yet, provided so it doesn't break places where eepGet is already used, will break non-empty passwords)
+</code></pre>
+    <div id="sourcecode">
+      <span id="sourcehead">
+        <strong>
+          Get the source code:
+        </strong>
+      </span>
+      <ul>
+        <li>
+          <a href="https://github.com/eyedeekay/iget.git">
+            Source Repository: (https://github.com/eyedeekay/iget.git)
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <iframe src="https://snowflake.torproject.org/embed.html" width="320" height="240" frameborder="0" scrolling="no"></iframe>
+    </div>
+    <div>
+      <a href="https://geti2p.net/">
+        <img src="i2plogo.png"></img>
+        I2P
+      </a>
+    </div>
+  </body>
+</html>
