@@ -73,7 +73,7 @@ func (i *IGet) Do(req *http.Request) (*http.Response, error) {
 	}
 	if i.outputPath != "-" && i.outputPath != "stdout" {
 		tempDestinationPath := i.outputPath
-		f, _ := os.OpenFile(tempDestinationPath, os.O_CREATE|os.O_WRONLY, 0644)
+		f, _ := os.OpenFile(tempDestinationPath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 		RangeBottom := i.DownloadedFileSize()
 		counter := &WriteCounter{
 			Total: uint64(RangeBottom),
