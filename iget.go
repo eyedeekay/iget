@@ -75,7 +75,7 @@ func (i *IGet) Do(req *http.Request) (*http.Response, error) {
 		tempDestinationPath := i.outputPath
 		f, _ := os.OpenFile(tempDestinationPath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 		var RangeBottom int64
-		if !i.continueDownload {
+		if i.continueDownload {
 			RangeBottom = i.DownloadedFileSize()
 		}
 		counter := &WriteCounter{
