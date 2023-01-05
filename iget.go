@@ -139,6 +139,7 @@ func (i *IGet) Request(setters ...RequestOption) (*http.Request, error) {
 	for _, setter := range setters {
 		setter(r)
 	}
+	r.Header.Set("User-Agent", "wget/1.11.4")
 	return r, nil
 }
 
@@ -188,12 +189,12 @@ func NewIGet(setters ...Option) (*IGet, error) {
 		destLifespan:    3000000,
 		timeoutTime:     3000000,
 		tunnelLength:    3,
-		inboundTunnels:  8,
+		inboundTunnels:  2,
 		outboundTunnels: 2,
 		keepAlives:      true,
 		idleConns:       4,
-		inboundBackups:  2,
-		outboundBackups: 2,
+		inboundBackups:  1,
+		outboundBackups: 1,
 		transport:       nil,
 	}
 	var err error
