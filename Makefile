@@ -42,7 +42,7 @@ clean:
 	rm -f bin/iget
 
 deps:
-	go get -u github.com/eyedeekay/gosam
+	go get -u github.com/eyedeekay/goSam
 	go get -u github.com/eyedeekay/iget
 
 README.md:
