@@ -59,14 +59,19 @@ type WriteCounter struct {
 	Total uint64
 }
 
-// Do "does" a request and returns a response. It's just a wrapper for http/client.Do
-func (i *IGet) Do(req *http.Request) (*http.Response, error) {
+// resolveOutputPath sets outputPath to the URL base name when markSize is set
+// and the output destination is stdout. Should be called before writing or printing a response.
+func (i *IGet) resolveOutputPath(rawURL string) {
 	if i.markSize != 0 {
 		if i.outputPath == "-" || i.outputPath == "stdout" {
-			i.outputPath = path.Base(req.URL.String())
+			i.outputPath = path.Base(rawURL)
 		}
-
 	}
+}
+
+// Do "does" a request and returns a response. It's just a wrapper for http/client.Do
+func (i *IGet) Do(req *http.Request) (*http.Response, error) {
+	i.resolveOutputPath(req.URL.String())
 	c, e := i.client.Do(req)
 	if e != nil {
 		return nil, e
@@ -153,11 +158,7 @@ func (i *IGet) DownloadedFileSize() int64 {
 
 // PrintResponse routes the output
 func (i *IGet) PrintResponse(c *http.Response) string {
-	if i.markSize != 0 {
-		if i.outputPath == "-" || i.outputPath == "stdout" {
-			i.outputPath = path.Base(c.Request.URL.String())
-		}
-	}
+	i.resolveOutputPath(c.Request.URL.String())
 	if i.outputPath == "-" || i.outputPath == "stdout" {
 		b, err := ioutil.ReadAll(c.Body)
 		if err != nil {
