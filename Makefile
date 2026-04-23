@@ -11,7 +11,7 @@ build: $(OUTFOLDER) fmt lint
 	GOOS=linux GOARCH=amd64 go build \
 		$(GO_COMPILER_OPTS) \
 		-o $(OUTFOLDER)/iget \
-		$(OUTFOLDER)/main.go
+		./iget
 	@echo 'built'
 
 install:
