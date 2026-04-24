@@ -114,12 +114,16 @@ func (i *IGet) resolveOutputPath(rawURL string) {
 }
 
 // saveToFile copies the response body to the configured output file with progress tracking.
-func (i *IGet) saveToFile(body io.Reader) error {
+func (i *IGet) saveToFile(body io.Reader) (err error) {
 	f, err := os.OpenFile(i.outputPath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0o644)
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() {
+		if closeErr := f.Close(); closeErr != nil && err == nil {
+			err = closeErr
+		}
+	}()
 	var rangeBottom int64
 	if i.continueDownload {
 		rangeBottom = i.DownloadedFileSize()
@@ -128,8 +132,8 @@ func (i *IGet) saveToFile(body io.Reader) error {
 		Total:    uint64(rangeBottom),
 		MarkSize: uint64(i.markSize),
 	}
-	_, copyErr := io.Copy(f, io.TeeReader(body, counter))
-	return copyErr
+	_, err = io.Copy(f, io.TeeReader(body, counter))
+	return err
 }
 
 // Do "does" a request and returns a response. It's just a wrapper for http/client.Do
@@ -155,6 +159,7 @@ func (i *IGet) Do(req *http.Request) (*http.Response, error) {
 	}
 	if i.outputPath != "-" && i.outputPath != "stdout" {
 		if err := i.saveToFile(c.Body); err != nil {
+			c.Body.Close()
 			return nil, err
 		}
 	}
@@ -232,6 +237,7 @@ func (i *IGet) DownloadedFileSize() int64 {
 
 // PrintResponse routes the output
 func (i *IGet) PrintResponse(c *http.Response) string {
+	defer c.Body.Close()
 	i.resolveOutputPath(c.Request.URL.String())
 	if i.outputPath == "-" || i.outputPath == "stdout" {
 		b, err := io.ReadAll(c.Body)
@@ -251,6 +257,21 @@ func (i *IGet) PrintResponse(c *http.Response) string {
 	}
 	return ""
 }
+
+// Close releases the underlying SAM session and closes all idle transport connections.
+// It must be called when the IGet client is no longer needed.
+func (i *IGet) Close() error {
+	if i.transport != nil {
+		i.transport.CloseIdleConnections()
+	}
+	if i.garlic != nil {
+		return i.garlic.Close()
+	}
+	return nil
+}
+
+// Compile-time assertion that *IGet implements io.Closer.
+var _ io.Closer = (*IGet)(nil)
 
 // NewIGet is an IGet Client
 func NewIGet(setters ...Option) (*IGet, error) {

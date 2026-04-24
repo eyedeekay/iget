@@ -111,8 +111,9 @@ func run(cmd *cobra.Command, args []string) error {
 
 	verbose := viper.GetBool("verbose")
 	if !verbose {
-		devNull, err := os.Open(os.DevNull)
+		devNull, err := os.OpenFile(os.DevNull, os.O_WRONLY, 0)
 		if err == nil {
+			defer devNull.Close()
 			os.Stderr = devNull
 		}
 	}
@@ -178,6 +179,7 @@ func run(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	defer igetClient.Close()
 
 	retries := viper.GetInt("retries")
 	for attempt := 0; attempt < retries; attempt++ {
@@ -199,6 +201,7 @@ func run(cmd *cobra.Command, args []string) error {
 			continue
 		}
 		igetClient.PrintResponse(resp)
+		resp.Body.Close()
 		return nil
 	}
 	return nil
