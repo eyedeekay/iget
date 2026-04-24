@@ -63,12 +63,15 @@ func init() {
 	rootCmd.Flags().IntP("line-length", "l", 80, "control line length of output (0 = unlimited)")
 	rootCmd.Flags().Int("lineLength", 0, "control line length of output (eepget compat alias)")
 	rootCmd.Flags().MarkHidden("lineLength")
-	rootCmd.Flags().StringP("etag", "e", "", "set the etag header (not yet implemented)")
+	rootCmd.Flags().StringP("etag", "e", "", "set the If-None-Match request header for conditional GETs")
 	rootCmd.Flags().IntP("mark-size", "m", 0, "show download progress (any value > 0 enables)")
 	rootCmd.Flags().IntP("retries", "n", 3, "number of retries")
+	rootCmd.Flags().StringP("data", "d", "", "request body for POST/PUT")
 	rootCmd.Flags().StringP("username", "u", "", "username for SAM authentication")
 	rootCmd.Flags().StringP("password", "x", "", "password for SAM authentication")
 	rootCmd.Flags().BoolP("continue", "c", true, "resume file from previous download")
+	rootCmd.Flags().String("to-port", "", "SAM virtual destination port")
+	rootCmd.Flags().String("from-port", "", "SAM virtual source port")
 }
 
 func initConfig() {
@@ -142,6 +145,9 @@ func run(cmd *cobra.Command, args []string) error {
 	}
 
 	headers, _ := cmd.Flags().GetStringArray("header")
+	if etag := viper.GetString("etag"); etag != "" {
+		headers = append(headers, "If-None-Match="+etag)
+	}
 
 	igetClient, err := i.NewIGet(
 		i.Lifespan(viper.GetInt("lifespan")),
@@ -165,6 +171,9 @@ func run(cmd *cobra.Command, args []string) error {
 		i.Username(viper.GetString("username")),
 		i.Password(viper.GetString("password")),
 		i.MarkSize(viper.GetInt("mark-size")),
+		i.Body(viper.GetString("data")),
+		i.ToPort(viper.GetString("to-port")),
+		i.FromPort(viper.GetString("from-port")),
 	)
 	if err != nil {
 		return err

@@ -26,19 +26,9 @@ func Close(i bool) RequestOption {
 func Headers(i []string) RequestOption {
 	return func(args *http.Request) {
 		for _, x := range i {
-			// args.headers = append(args.headers, x)
 			if len(strings.Split(x, "=")) == 2 {
 				args.Header.Add(strings.Split(x, "=")[0], strings.Split(x, "=")[1])
 			}
 		}
 	}
 }
-
-/*
-// OPT sets the request opt
-func OPT(i string) RequestOption {
-	return func(args *http.Request) {
-		args.OPT = i
-	}
-}
-*/

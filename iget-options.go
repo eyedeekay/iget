@@ -3,10 +3,10 @@ package iget
 // Option is an IGet option
 type Option func(*IGet)
 
-// Lifespan is the lifespan to keep the destination alive
+// Lifespan is the lifespan to keep the destination alive, in minutes.
 func Lifespan(i int) Option {
 	return func(args *IGet) {
-		args.destLifespan = i
+		args.destLifespan = i * 60 * 1000
 	}
 }
 
@@ -119,5 +119,12 @@ func Username(i string) Option {
 func Password(i string) Option {
 	return func(args *IGet) {
 		args.password = i
+	}
+}
+
+// Body sets the request body for non-GET methods (e.g., POST, PUT).
+func Body(i string) Option {
+	return func(args *IGet) {
+		args.body = i
 	}
 }

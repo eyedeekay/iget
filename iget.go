@@ -29,7 +29,6 @@ type IGet struct {
 	method string
 	url    string
 	body   string
-	// headers []string
 
 	destLifespan    int
 	timeoutTime     int
@@ -40,6 +39,9 @@ type IGet struct {
 	idleConns       int
 	inboundBackups  int
 	outboundBackups int
+
+	toPort   string
+	fromPort string
 
 	client    *http.Client
 	transport *http.Transport
@@ -54,8 +56,25 @@ func (i IGet) samaddress() string {
 	return i.samHost + ":" + i.samPort
 }
 
+// applyPortOptions applies optional SAM virtual-port settings to the SAM client.
+func (i *IGet) applyPortOptions() error {
+	if i.toPort != "" {
+		if err := goSam.SetToPort(i.toPort)(i.samClient); err != nil {
+			return err
+		}
+	}
+	if i.fromPort != "" {
+		if err := goSam.SetFromPort(i.fromPort)(i.samClient); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 type WriteCounter struct {
-	Total uint64
+	Total    uint64
+	MarkSize uint64
+	LastMark uint64
 }
 
 // resolveOutputPath sets outputPath to the URL base name when markSize is set
@@ -69,28 +88,42 @@ func (i *IGet) resolveOutputPath(rawURL string) {
 	}
 }
 
+// saveToFile copies the response body to the configured output file with progress tracking.
+func (i *IGet) saveToFile(body io.Reader) error {
+	f, err := os.OpenFile(i.outputPath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0o644)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	var rangeBottom int64
+	if i.continueDownload {
+		rangeBottom = i.DownloadedFileSize()
+	}
+	counter := &WriteCounter{
+		Total:    uint64(rangeBottom),
+		MarkSize: uint64(i.markSize),
+	}
+	_, copyErr := io.Copy(f, io.TeeReader(body, counter))
+	return copyErr
+}
+
 // Do "does" a request and returns a response. It's just a wrapper for http/client.Do
 func (i *IGet) Do(req *http.Request) (*http.Response, error) {
 	i.resolveOutputPath(req.URL.String())
+	if i.verb {
+		fmt.Fprintf(os.Stderr, "[iget] %s %s\n", req.Method, req.URL)
+	}
 	c, e := i.client.Do(req)
 	if e != nil {
 		return nil, e
 	}
+	if i.verb {
+		fmt.Fprintf(os.Stderr, "[iget] response: %s\n", c.Status)
+	}
 	if i.outputPath != "-" && i.outputPath != "stdout" {
-		tempDestinationPath := i.outputPath
-		f, err := os.OpenFile(tempDestinationPath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0o644)
-		if err != nil {
+		if err := i.saveToFile(c.Body); err != nil {
 			return nil, err
 		}
-		defer f.Close()
-		var RangeBottom int64
-		if i.continueDownload {
-			RangeBottom = i.DownloadedFileSize()
-		}
-		counter := &WriteCounter{
-			Total: uint64(RangeBottom),
-		}
-		io.Copy(f, io.TeeReader(c.Body, counter))
 	}
 	return c, e
 }
@@ -98,7 +131,10 @@ func (i *IGet) Do(req *http.Request) (*http.Response, error) {
 func (wc *WriteCounter) Write(p []byte) (int, error) {
 	n := len(p)
 	wc.Total += uint64(n)
-	wc.PrintProgress()
+	if wc.MarkSize > 0 && wc.Total/wc.MarkSize > wc.LastMark/wc.MarkSize {
+		wc.PrintProgress()
+		wc.LastMark = wc.Total
+	}
 	return n, nil
 }
 
@@ -192,16 +228,17 @@ func NewIGet(setters ...Option) (*IGet, error) {
 		debug:      false,
 		outputPath: "-",
 
-		destLifespan:     3000000,
+		destLifespan:     6 * 60 * 1000,
 		timeoutTime:      3000000,
 		tunnelLength:     3,
 		inboundTunnels:   2,
 		outboundTunnels:  2,
-		keepAlives:       true,
+		keepAlives:       false,
 		idleConns:        4,
 		inboundBackups:   1,
 		outboundBackups:  1,
 		continueDownload: true,
+		lineLength:       80,
 		transport:        nil,
 	}
 	var err error
@@ -210,7 +247,7 @@ func NewIGet(setters ...Option) (*IGet, error) {
 	}
 	i.samClient, err = goSam.NewClientFromOptions(
 		goSam.SetCloseIdle(true),
-		goSam.SetCloseIdleTime(3000000),
+		goSam.SetCloseIdleTime(uint(i.destLifespan)),
 		goSam.SetHost(i.samHost),
 		goSam.SetPort(i.samPort),
 		goSam.SetDebug(i.debug),
@@ -225,6 +262,13 @@ func NewIGet(setters ...Option) (*IGet, error) {
 	)
 	if err != nil {
 		return nil, err
+	}
+	if err = i.applyPortOptions(); err != nil {
+		return nil, err
+	}
+	if i.verb {
+		fmt.Fprintf(os.Stderr, "[iget] SAM bridge: %s  tunnels in=%d out=%d length=%d\n",
+			i.samaddress(), i.inboundTunnels, i.outboundTunnels, i.tunnelLength)
 	}
 	i.transport = &http.Transport{
 		Dial:                  i.samClient.Dial,
