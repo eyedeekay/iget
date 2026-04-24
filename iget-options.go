@@ -87,7 +87,7 @@ func Verbose(i bool) Option {
 	}
 }
 
-// Debug sets the debug option in goSam
+// Debug enables verbose debug logging
 func Debug(i bool) Option {
 	return func(args *IGet) {
 		args.debug = i

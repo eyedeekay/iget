@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/dustin/go-humanize"
-	"github.com/eyedeekay/goSam"
+	"github.com/go-i2p/onramp"
 )
 
 // IGet is an IGet client
@@ -45,7 +45,7 @@ type IGet struct {
 
 	client    *http.Client
 	transport *http.Transport
-	samClient *goSam.Client
+	garlic    *onramp.Garlic
 
 	lineLength       int
 	continueDownload bool
@@ -56,18 +56,9 @@ func (i IGet) samaddress() string {
 	return i.samHost + ":" + i.samPort
 }
 
-// applyPortOptions applies optional SAM virtual-port settings to the SAM client.
+// applyPortOptions is a no-op retained for API compatibility.
+// Virtual port configuration is not supported by the onramp backend.
 func (i *IGet) applyPortOptions() error {
-	if i.toPort != "" {
-		if err := goSam.SetToPort(i.toPort)(i.samClient); err != nil {
-			return err
-		}
-	}
-	if i.fromPort != "" {
-		if err := goSam.SetFromPort(i.fromPort)(i.samClient); err != nil {
-			return err
-		}
-	}
 	return nil
 }
 
@@ -245,25 +236,16 @@ func NewIGet(setters ...Option) (*IGet, error) {
 	for _, setter := range setters {
 		setter(i)
 	}
-	i.samClient, err = goSam.NewClientFromOptions(
-		goSam.SetCloseIdle(true),
-		goSam.SetCloseIdleTime(uint(i.destLifespan)),
-		goSam.SetHost(i.samHost),
-		goSam.SetPort(i.samPort),
-		goSam.SetDebug(i.debug),
-		goSam.SetInLength(uint(i.tunnelLength)),
-		goSam.SetOutLength(uint(i.tunnelLength)),
-		goSam.SetInQuantity(uint(i.inboundTunnels)),
-		goSam.SetOutQuantity(uint(i.outboundTunnels)),
-		goSam.SetInBackups(uint(i.inboundBackups)),
-		goSam.SetOutBackups(uint(i.outboundBackups)),
-		goSam.SetUser(i.username),
-		goSam.SetPass(i.password),
-	)
-	if err != nil {
-		return nil, err
+	samOpts := []string{
+		fmt.Sprintf("inbound.length=%d", i.tunnelLength),
+		fmt.Sprintf("outbound.length=%d", i.tunnelLength),
+		fmt.Sprintf("inbound.quantity=%d", i.inboundTunnels),
+		fmt.Sprintf("outbound.quantity=%d", i.outboundTunnels),
+		fmt.Sprintf("inbound.backupQuantity=%d", i.inboundBackups),
+		fmt.Sprintf("outbound.backupQuantity=%d", i.outboundBackups),
 	}
-	if err = i.applyPortOptions(); err != nil {
+	i.garlic, err = onramp.NewGarlic("iget", i.samaddress(), samOpts)
+	if err != nil {
 		return nil, err
 	}
 	if i.verb {
@@ -271,7 +253,8 @@ func NewIGet(setters ...Option) (*IGet, error) {
 			i.samaddress(), i.inboundTunnels, i.outboundTunnels, i.tunnelLength)
 	}
 	i.transport = &http.Transport{
-		Dial:                  i.samClient.Dial,
+		Dial:                  i.garlic.Dial,
+		DialContext:           i.garlic.DialContext,
 		MaxIdleConns:          i.idleConns,
 		MaxIdleConnsPerHost:   i.idleConns,
 		DisableKeepAlives:     i.keepAlives,
