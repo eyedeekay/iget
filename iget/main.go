@@ -110,13 +110,6 @@ func run(cmd *cobra.Command, args []string) error {
 	}
 
 	verbose := viper.GetBool("verbose")
-	if !verbose {
-		devNull, err := os.OpenFile(os.DevNull, os.O_WRONLY, 0)
-		if err == nil {
-			defer devNull.Close()
-			os.Stderr = devNull
-		}
-	}
 
 	samHost := viper.GetString("bridge-host")
 	samPort := viper.GetString("bridge-port")
@@ -201,7 +194,6 @@ func run(cmd *cobra.Command, args []string) error {
 			continue
 		}
 		igetClient.PrintResponse(resp)
-		resp.Body.Close()
 		return nil
 	}
 	return nil

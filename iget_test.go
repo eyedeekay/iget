@@ -1,6 +1,7 @@
 package iget
 
 import (
+	"os"
 	"testing"
 )
 
@@ -13,6 +14,7 @@ func TestIGet(t *testing.T) {
 	); e != nil {
 		t.Fatal(e.Error())
 	} else {
+		defer ic.Close()
 		if r, e := ic.Request(); e != nil {
 			t.Fatal(e.Error())
 		} else {
@@ -35,6 +37,8 @@ func TestIGetFile(t *testing.T) {
 	); e != nil {
 		t.Fatal(e.Error())
 	} else {
+		defer ic.Close()
+		t.Cleanup(func() { os.Remove("file.html") })
 		if r, e := ic.Request(); e != nil {
 			t.Fatal(e.Error())
 		} else {
@@ -57,6 +61,7 @@ func TestDoBytes(t *testing.T) {
 	if e != nil {
 		t.Fatal(e.Error())
 	}
+	defer ic.Close()
 	r, e := ic.Request()
 	if e != nil {
 		t.Fatal(e.Error())
@@ -80,6 +85,7 @@ func TestDoString(t *testing.T) {
 	if e != nil {
 		t.Fatal(e.Error())
 	}
+	defer ic.Close()
 	r, e := ic.Request()
 	if e != nil {
 		t.Fatal(e.Error())
@@ -101,6 +107,7 @@ func TestLineLengthZero(t *testing.T) {
 	if e != nil {
 		t.Fatal(e.Error())
 	}
+	defer ic.Close()
 	// Verify that constructing with LineLength(0) succeeds (no panic expected in PrintResponse).
 	if ic.lineLength != 0 {
 		t.Errorf("expected lineLength=0, got %d", ic.lineLength)

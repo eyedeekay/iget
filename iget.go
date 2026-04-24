@@ -58,6 +58,12 @@ type IGet struct {
 	lineLength       int
 	continueDownload bool
 	markSize         int
+
+	// verboseOut receives all library diagnostic output. It is set to
+	// io.Discard when verb==false and to os.Stderr when verb==true, so that
+	// the process-level os.Stderr is never redirected and cobra's error
+	// handler always has a valid file descriptor.
+	verboseOut io.Writer
 }
 
 func (i IGet) samaddress() string {
@@ -108,7 +114,7 @@ func (i *IGet) resolveOutputPath(rawURL string) {
 	if i.markSize != 0 {
 		if i.outputPath == "-" || i.outputPath == "stdout" {
 			i.outputPath = path.Base(rawURL)
-			fmt.Fprintf(os.Stderr, "Saving to: %s\n", i.outputPath)
+			fmt.Fprintf(i.verboseOut, "Saving to: %s\n", i.outputPath)
 		}
 	}
 }
@@ -140,22 +146,22 @@ func (i *IGet) saveToFile(body io.Reader) (err error) {
 func (i *IGet) Do(req *http.Request) (*http.Response, error) {
 	i.resolveOutputPath(req.URL.String())
 	if i.verb {
-		fmt.Fprintf(os.Stderr, "[iget] %s %s\n", req.Method, req.URL)
+		fmt.Fprintf(i.verboseOut, "[iget] %s %s\n", req.Method, req.URL)
 	}
 	c, e := i.client.Do(req)
 	if e != nil {
 		return nil, e
 	}
 	if i.debug {
-		fmt.Fprintf(os.Stderr, "[iget debug] response status: %s\n", c.Status)
+		fmt.Fprintf(i.verboseOut, "[iget debug] response status: %s\n", c.Status)
 		for k, vals := range c.Header {
 			for _, v := range vals {
-				fmt.Fprintf(os.Stderr, "[iget debug] header: %s: %s\n", k, v)
+				fmt.Fprintf(i.verboseOut, "[iget debug] header: %s: %s\n", k, v)
 			}
 		}
 	}
 	if i.verb {
-		fmt.Fprintf(os.Stderr, "[iget] response: %s\n", c.Status)
+		fmt.Fprintf(i.verboseOut, "[iget] response: %s\n", c.Status)
 	}
 	if i.outputPath != "-" && i.outputPath != "stdout" {
 		if err := i.saveToFile(c.Body); err != nil {
@@ -283,7 +289,7 @@ func NewIGet(setters ...Option) (*IGet, error) {
 		outputPath: "-",
 
 		destLifespan:     6 * 60 * 1000,
-		timeoutTime:      3000000,
+		timeoutTime:      6 * 60 * 1000, // 6 minutes — matches --timeout default
 		tunnelLength:     3,
 		inboundTunnels:   2,
 		outboundTunnels:  2,
@@ -316,13 +322,18 @@ func NewIGet(setters ...Option) (*IGet, error) {
 	if err != nil {
 		return nil, err
 	}
+	if i.verb || i.debug {
+		i.verboseOut = os.Stderr
+	} else {
+		i.verboseOut = io.Discard
+	}
 	if i.debug {
-		fmt.Fprintf(os.Stderr, "[iget debug] SAM bridge: %s\n", i.samaddress())
-		fmt.Fprintf(os.Stderr, "[iget debug] SAM opts: %v\n", samOpts)
-		fmt.Fprintf(os.Stderr, "[iget debug] toPort=%q fromPort=%q\n", i.toPort, i.fromPort)
+		fmt.Fprintf(i.verboseOut, "[iget debug] SAM bridge: %s\n", i.samaddress())
+		fmt.Fprintf(i.verboseOut, "[iget debug] SAM opts: %v\n", samOpts)
+		fmt.Fprintf(i.verboseOut, "[iget debug] toPort=%q fromPort=%q\n", i.toPort, i.fromPort)
 	}
 	if i.verb {
-		fmt.Fprintf(os.Stderr, "[iget] SAM bridge: %s  tunnels in=%d out=%d length=%d\n",
+		fmt.Fprintf(i.verboseOut, "[iget] SAM bridge: %s  tunnels in=%d out=%d length=%d\n",
 			i.samaddress(), i.inboundTunnels, i.outboundTunnels, i.tunnelLength)
 	}
 	dialContext := i.applyPortOptions()
@@ -344,6 +355,7 @@ func NewIGet(setters ...Option) (*IGet, error) {
 	}
 	i.client = &http.Client{
 		Transport: i.transport,
+		Timeout:   time.Duration(i.timeoutTime) * time.Millisecond,
 	}
 	return i, nil
 }
