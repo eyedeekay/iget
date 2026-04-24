@@ -1,3 +1,9 @@
+// Package iget provides a highly-configurable curl/wget-like HTTP client that
+// works exclusively over I2P via the SAM API. It prevents destination reuse
+// across different sites, never forwards traffic through a clearnet HTTP proxy,
+// and exposes inline I2CP configuration (tunnel counts, lengths, and lifespans)
+// for each invocation. The package is also used as the library backend for the
+// iget CLI binary.
 package iget
 
 import (
@@ -66,9 +72,18 @@ func (i *IGet) applyPortOptions() func(ctx context.Context, network, addr string
 		return nil
 	}
 	return func(ctx context.Context, network, addr string) (net.Conn, error) {
+		// addr arrives as "dest.b32.i2p:httpPort" from http.Transport.
+		// Strip the HTTP port so we can substitute the SAM virtual port.
+		host, _, err := net.SplitHostPort(addr)
+		if err != nil {
+			// addr has no port component; use it as-is.
+			host = addr
+		}
 		if i.toPort != "" {
 			// Encode destination virtual port into the address as "dest.i2p:port".
-			addr = net.JoinHostPort(addr, i.toPort)
+			addr = net.JoinHostPort(host, i.toPort)
+		} else {
+			addr = host
 		}
 		if i.fromPort != "" {
 			fp, err := net.LookupPort("tcp", i.fromPort)
@@ -126,6 +141,14 @@ func (i *IGet) Do(req *http.Request) (*http.Response, error) {
 	c, e := i.client.Do(req)
 	if e != nil {
 		return nil, e
+	}
+	if i.debug {
+		fmt.Fprintf(os.Stderr, "[iget debug] response status: %s\n", c.Status)
+		for k, vals := range c.Header {
+			for _, v := range vals {
+				fmt.Fprintf(os.Stderr, "[iget debug] header: %s: %s\n", k, v)
+			}
+		}
 	}
 	if i.verb {
 		fmt.Fprintf(os.Stderr, "[iget] response: %s\n", c.Status)
@@ -217,7 +240,7 @@ func (i *IGet) PrintResponse(c *http.Response) string {
 		}
 		a := []rune(string(b))
 		for index, r := range a {
-			if index > 0 && (index+1)%i.lineLength == 0 {
+			if i.lineLength > 0 && index > 0 && (index+1)%i.lineLength == 0 {
 				fmt.Printf("%c\n", r)
 			} else {
 				fmt.Printf("%c", r)
@@ -262,10 +285,20 @@ func NewIGet(setters ...Option) (*IGet, error) {
 		fmt.Sprintf("outbound.quantity=%d", i.outboundTunnels),
 		fmt.Sprintf("inbound.backupQuantity=%d", i.inboundBackups),
 		fmt.Sprintf("outbound.backupQuantity=%d", i.outboundBackups),
+		fmt.Sprintf("i2cp.closeIdleTime=%d", i.destLifespan),
 	}
-	i.garlic, err = onramp.NewGarlic("iget", i.samaddress(), samOpts)
+	if i.username != "" || i.password != "" {
+		i.garlic, err = onramp.NewGarlicWithAuth("iget", i.samaddress(), i.username, i.password, samOpts)
+	} else {
+		i.garlic, err = onramp.NewGarlic("iget", i.samaddress(), samOpts)
+	}
 	if err != nil {
 		return nil, err
+	}
+	if i.debug {
+		fmt.Fprintf(os.Stderr, "[iget debug] SAM bridge: %s\n", i.samaddress())
+		fmt.Fprintf(os.Stderr, "[iget debug] SAM opts: %v\n", samOpts)
+		fmt.Fprintf(os.Stderr, "[iget debug] toPort=%q fromPort=%q\n", i.toPort, i.fromPort)
 	}
 	if i.verb {
 		fmt.Fprintf(os.Stderr, "[iget] SAM bridge: %s  tunnels in=%d out=%d length=%d\n",

@@ -108,14 +108,16 @@ func URL(i string) Option {
 	}
 }
 
-// Username sets the SAM AUTH username
+// Username sets the SAM AUTH username for connecting to a SAM bridge that
+// requires SAM v3.2+ USER/PASSWORD authentication.
 func Username(i string) Option {
 	return func(args *IGet) {
 		args.username = i
 	}
 }
 
-// Password sets the SAM AUTH password
+// Password sets the SAM AUTH password for connecting to a SAM bridge that
+// requires SAM v3.2+ USER/PASSWORD authentication.
 func Password(i string) Option {
 	return func(args *IGet) {
 		args.password = i

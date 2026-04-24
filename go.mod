@@ -4,7 +4,7 @@ go 1.26.1
 
 require (
 	github.com/dustin/go-humanize v1.0.1
-	github.com/go-i2p/onramp v0.33.93-0.20260424172426-baf9e92f0502
+	github.com/go-i2p/onramp v0.33.93-0.20260424200814-b7b6382ac96a
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
 )
@@ -33,7 +33,6 @@ require (
 	github.com/go-i2p/logger v0.1.6-0.20260416175522-ca16e38699b3 // indirect
 	github.com/go-i2p/noise v1.1.1-0.20260411211052-e55ea74b1439 // indirect
 	github.com/go-i2p/red25519 v0.0.0-20260302212615-1093a31f680d // indirect
-	github.com/go-i2p/sam3 v0.33.9 // indirect
 	github.com/go-i2p/su3 v0.0.2-0.20260413153317-5e4e8cc3b554 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
