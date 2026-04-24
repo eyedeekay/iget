@@ -29,7 +29,7 @@ type IGet struct {
 	method string
 	url    string
 	body   string
-	//headers []string
+	// headers []string
 
 	destLifespan    int
 	timeoutTime     int
@@ -78,7 +78,7 @@ func (i *IGet) Do(req *http.Request) (*http.Response, error) {
 	}
 	if i.outputPath != "-" && i.outputPath != "stdout" {
 		tempDestinationPath := i.outputPath
-		f, err := os.OpenFile(tempDestinationPath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
+		f, err := os.OpenFile(tempDestinationPath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0o644)
 		if err != nil {
 			return nil, err
 		}
@@ -177,7 +177,7 @@ func (i *IGet) PrintResponse(c *http.Response) string {
 				fmt.Printf("%c", r)
 			}
 		}
-		//fmt.Printf("%s", b)
+		// fmt.Printf("%s", b)
 		return string(b)
 	}
 	return ""
