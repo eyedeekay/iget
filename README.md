@@ -16,7 +16,7 @@ These advantages motivated development. More may emerge as it continues.
     in and 2 tunnels out
 
 ### Disadvantages:
-Only two I know of so far.
+Only one I know of so far.
 
   - marginally slower, due to tunnel-creation at runtime.
 
@@ -69,7 +69,7 @@ Usage of /home/idk/go/src/github.com/eyedeekay/iget/iget/iget:
   -method string
     	Request method (default "GET")
   -n int
-    	Retries(not enabled yet, provided so it doesn't break places where eepGet is already used) (default 3)
+    	Number of retries on failure (default 3)
   -o string
     	Output path (default "-")
   -out-backups int
@@ -87,12 +87,12 @@ Usage of /home/idk/go/src/github.com/eyedeekay/iget/iget/iget:
   -tunlength int
     	Tunnel Length (default 3)
   -u string
-    	Username for authenticating to SAM(not enabled yet, provided so it doesn't break places where eepGet is already used, will break non-empty usernames)
+    	Username for authenticating to SAM
   -url string
     	i2p URL you want to retrieve
   -verbose
     	Print additional info about the process
   -x string
-    	Password for authenticating to SAM(not enabled yet, provided so it doesn't break places where eepGet is already used, will break non-empty passwords)
+    	Password for authenticating to SAM
 ```
 

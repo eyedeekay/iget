@@ -5,9 +5,8 @@ import (
 	"net/url"
 	"os"
 	"strings"
-	"syscall"
 
-	i "github.com/eyedeekay/iget"
+	i "github.com/go-i2p/iget"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -111,8 +110,7 @@ func run(cmd *cobra.Command, args []string) error {
 	if !verbose {
 		devNull, err := os.Open(os.DevNull)
 		if err == nil {
-			syscall.Dup2(int(devNull.Fd()), int(os.Stderr.Fd()))
-			devNull.Close()
+			os.Stderr = devNull
 		}
 	}
 
@@ -151,7 +149,7 @@ func run(cmd *cobra.Command, args []string) error {
 		i.Length(viper.GetInt("tunlength")),
 		i.Inbound(viper.GetInt("in-tunnels")),
 		i.Outbound(viper.GetInt("out-tunnels")),
-		i.KeepAlives(viper.GetBool("disable-keepalives")),
+		i.DisableKeepAlives(viper.GetBool("disable-keepalives")),
 		i.Idles(viper.GetInt("idle-conns")),
 		i.InboundBackups(viper.GetInt("in-backups")),
 		i.OutboundBackups(viper.GetInt("out-backups")),

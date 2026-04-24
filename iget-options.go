@@ -118,6 +118,6 @@ func Username(i string) Option {
 // Password sets the SAM AUTH password
 func Password(i string) Option {
 	return func(args *IGet) {
-		args.username = i
+		args.password = i
 	}
 }

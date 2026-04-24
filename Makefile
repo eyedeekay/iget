@@ -15,7 +15,7 @@ build: $(OUTFOLDER) fmt lint
 	@echo 'built'
 
 install:
-	install -m755 bin/iget /usr/bin/iget
+	install -m755 $(OUTFOLDER)/iget /usr/bin/iget
 
 install-wrapper:
 	ls $(shell which eepget).bak || which eepget && mv $(shell which eepget) $(shell which eepget).bak; true
@@ -39,11 +39,11 @@ test:
 	go test
 
 clean:
-	rm -f bin/iget
+	rm -f $(OUTFOLDER)/iget
 
 deps:
 	go get -u github.com/eyedeekay/goSam
-	go get -u github.com/eyedeekay/iget
+	go mod tidy
 
 README.md:
 	@echo "# iget" | tee $(PWD)/README.md
@@ -94,10 +94,10 @@ rcl:
 re: rcl README.md
 
 fire:
-	./bin/iget -url http://i2p-projekt.i2p
+	$(OUTFOLDER)/iget -url http://i2p-projekt.i2p
 
 fire2:
-	./bin/iget http://566niximlxdzpanmn4qouucvua3k7neniwss47li5r6ugoertzuq.b32.i2p
+	$(OUTFOLDER)/iget http://566niximlxdzpanmn4qouucvua3k7neniwss47li5r6ugoertzuq.b32.i2p
 
 fire3:
 	eepget -l 80 "http://566niximlxdzpanmn4qouucvua3k7neniwss47li5r6ugoertzuq.b32.i2p"

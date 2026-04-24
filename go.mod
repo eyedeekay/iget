@@ -1,4 +1,4 @@
-module github.com/eyedeekay/iget
+module github.com/go-i2p/iget
 
 go 1.23.0
 

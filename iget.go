@@ -4,7 +4,6 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
@@ -65,6 +64,7 @@ func (i *IGet) resolveOutputPath(rawURL string) {
 	if i.markSize != 0 {
 		if i.outputPath == "-" || i.outputPath == "stdout" {
 			i.outputPath = path.Base(rawURL)
+			fmt.Fprintf(os.Stderr, "Saving to: %s\n", i.outputPath)
 		}
 	}
 }
@@ -78,7 +78,11 @@ func (i *IGet) Do(req *http.Request) (*http.Response, error) {
 	}
 	if i.outputPath != "-" && i.outputPath != "stdout" {
 		tempDestinationPath := i.outputPath
-		f, _ := os.OpenFile(tempDestinationPath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
+		f, err := os.OpenFile(tempDestinationPath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
+		if err != nil {
+			return nil, err
+		}
+		defer f.Close()
 		var RangeBottom int64
 		if i.continueDownload {
 			RangeBottom = i.DownloadedFileSize()
@@ -112,7 +116,8 @@ func (i *IGet) DoBytes(req *http.Request) ([]byte, error) {
 	if e != nil {
 		return b, e
 	}
-	b, err = ioutil.ReadAll(c.Body)
+	defer c.Body.Close()
+	b, err = io.ReadAll(c.Body)
 	if err != nil {
 		return b, err
 	}
@@ -131,7 +136,7 @@ func (i *IGet) DoString(req *http.Request) (string, error) {
 
 // Request generates an *http.Request
 func (i *IGet) Request(setters ...RequestOption) (*http.Request, error) {
-	r, err := http.NewRequest(i.method, i.url, ioutil.NopCloser(strings.NewReader(i.body)))
+	r, err := http.NewRequest(i.method, i.url, io.NopCloser(strings.NewReader(i.body)))
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +165,7 @@ func (i *IGet) DownloadedFileSize() int64 {
 func (i *IGet) PrintResponse(c *http.Response) string {
 	i.resolveOutputPath(c.Request.URL.String())
 	if i.outputPath == "-" || i.outputPath == "stdout" {
-		b, err := ioutil.ReadAll(c.Body)
+		b, err := io.ReadAll(c.Body)
 		if err != nil {
 			return ""
 		}
@@ -187,16 +192,17 @@ func NewIGet(setters ...Option) (*IGet, error) {
 		debug:      false,
 		outputPath: "-",
 
-		destLifespan:    3000000,
-		timeoutTime:     3000000,
-		tunnelLength:    3,
-		inboundTunnels:  2,
-		outboundTunnels: 2,
-		keepAlives:      true,
-		idleConns:       4,
-		inboundBackups:  1,
-		outboundBackups: 1,
-		transport:       nil,
+		destLifespan:     3000000,
+		timeoutTime:      3000000,
+		tunnelLength:     3,
+		inboundTunnels:   2,
+		outboundTunnels:  2,
+		keepAlives:       true,
+		idleConns:        4,
+		inboundBackups:   1,
+		outboundBackups:  1,
+		continueDownload: true,
+		transport:        nil,
 	}
 	var err error
 	for _, setter := range setters {
@@ -229,7 +235,9 @@ func NewIGet(setters ...Option) (*IGet, error) {
 		ExpectContinueTimeout: time.Duration(i.timeoutTime) * time.Millisecond,
 		IdleConnTimeout:       time.Duration(i.timeoutTime) * time.Millisecond,
 		TLSNextProto:          make(map[string]func(authority string, c *tls.Conn) http.RoundTripper),
-		TLSClientConfig:       &tls.Config{InsecureSkipVerify: true},
+		// InsecureSkipVerify is intentional: i2p eepsites commonly use self-signed certificates.
+		// All traffic is routed through the i2p network via SAM, so there is no clearnet exposure.
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, //nolint:gosec
 	}
 	i.client = &http.Client{
 		Transport: i.transport,

@@ -1,7 +1,7 @@
 package iget
 
-// KeepAlives tells to allow keepalives
-func KeepAlives(i bool) Option {
+// DisableKeepAlives disables keepalives on the HTTP transport when set to true
+func DisableKeepAlives(i bool) Option {
 	return func(args *IGet) {
 		args.keepAlives = i
 	}
