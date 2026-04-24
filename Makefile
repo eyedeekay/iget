@@ -1,8 +1,6 @@
 
 OUTFOLDER = $(PWD)/iget
 
-GOPATH = $(PWD)/.go
-
 CGO_ENABLED=0
 
 GO_COMPILER_OPTS = -a -tags netgo -ldflags '-w -extldflags "-static"'
@@ -22,14 +20,14 @@ install-wrapper:
 	ln -sf /usr/bin/iget /usr/bin/eepget
 
 fmt:
-	find . -path ./.go -prune -o -name '*.go' -exec gofmt -w {} \;
+	find . -name '*.go' -exec gofumpt -w -extra {} \;
 
 lint:
-	find . -path ./.go -prune -o -name '*.go' -exec golint {} \;
+	find . -name '*.go' -exec golint {} \;
 
 # This is just to make sure that I don't leave unnecessary crap behind in the code.
 checkuses:
-	find . -path ./.go -prune -o -name '*.go' -exec grep Do {} \;
+	find . -name '*.go' -exec grep Do {} \;
 
 $(OUTFOLDER):
 	mkdir -p $(OUTFOLDER)
