@@ -19,8 +19,7 @@ install:
 
 install-wrapper:
 	ls $(shell which eepget).bak || which eepget && mv $(shell which eepget) $(shell which eepget).bak; true
-	install -m755 bin/eepget-wrapper.sh /usr/bin/eepget-wrapper.sh
-	ln -sf /usr/bin/eepget-wrapper.sh /usr/bin/eepget
+	ln -sf /usr/bin/iget /usr/bin/eepget
 
 fmt:
 	find . -path ./.go -prune -o -name '*.go' -exec gofmt -w {} \;
