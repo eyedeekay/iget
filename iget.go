@@ -1,9 +1,11 @@
 package iget
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"os"
 	"path"
@@ -56,10 +58,27 @@ func (i IGet) samaddress() string {
 	return i.samHost + ":" + i.samPort
 }
 
-// applyPortOptions is a no-op retained for API compatibility.
-// Virtual port configuration is not supported by the onramp backend.
-func (i *IGet) applyPortOptions() error {
-	return nil
+// applyPortOptions returns a DialContext func that incorporates SAM virtual port
+// settings when toPort or fromPort are configured. When neither is set it returns
+// nil so the caller can fall back to the plain garlic.DialContext method.
+func (i *IGet) applyPortOptions() func(ctx context.Context, network, addr string) (net.Conn, error) {
+	if i.toPort == "" && i.fromPort == "" {
+		return nil
+	}
+	return func(ctx context.Context, network, addr string) (net.Conn, error) {
+		if i.toPort != "" {
+			// Encode destination virtual port into the address as "dest.i2p:port".
+			addr = net.JoinHostPort(addr, i.toPort)
+		}
+		if i.fromPort != "" {
+			fp, err := net.LookupPort("tcp", i.fromPort)
+			if err != nil {
+				return nil, fmt.Errorf("iget: invalid FROM_PORT %q: %w", i.fromPort, err)
+			}
+			return i.garlic.DialContextToPort(ctx, network, addr, fp)
+		}
+		return i.garlic.DialContextToPort(ctx, network, addr)
+	}
 }
 
 type WriteCounter struct {
@@ -252,9 +271,12 @@ func NewIGet(setters ...Option) (*IGet, error) {
 		fmt.Fprintf(os.Stderr, "[iget] SAM bridge: %s  tunnels in=%d out=%d length=%d\n",
 			i.samaddress(), i.inboundTunnels, i.outboundTunnels, i.tunnelLength)
 	}
+	dialContext := i.applyPortOptions()
+	if dialContext == nil {
+		dialContext = i.garlic.DialContext
+	}
 	i.transport = &http.Transport{
-		Dial:                  i.garlic.Dial,
-		DialContext:           i.garlic.DialContext,
+		DialContext:           dialContext,
 		MaxIdleConns:          i.idleConns,
 		MaxIdleConnsPerHost:   i.idleConns,
 		DisableKeepAlives:     i.keepAlives,
