@@ -1,82 +1,130 @@
 # iget
-i2p terminal http client.
 
-## description:
-This is a highly-configurable curl/wget like client which exclusively works
-over i2p. It works via the SAM API which means it has some advantages and
-some disadvantages, as follows:
+An I2P HTTP client for use as a Go library and CLI tool. It communicates exclusively over I2P via the SAM bridge API — no HTTP proxy, no clearnet leakage.
 
-### Advantages:
-These advantages motivated development. More may emerge as it continues.
-
-  - uses the SAM API to prevent destination-reuse for different sites
-  - uses the SAM API directly(not forwarding) so it can't leak information
-    to clearnet services
-  - inline options to configure i2cp, so for example we can have 8 tunnels
-    in and 2 tunnels out
-
-### Disadvantages:
-Only one I know of so far.
-
-  - marginally slower, due to tunnel-creation at runtime.
-
-### Security Notes:
-
-  - TLS certificate verification is disabled (`InsecureSkipVerify: true`). This
-    is intentional: I2P eepsites commonly use self-signed certificates and
-    certificate authorities have no jurisdiction over the I2P network. All
-    traffic is already routed through the I2P network via SAM, so there is no
-    clearnet exposure. Users who require strict certificate pinning should be
-    aware of this behaviour.
-
-Wherever possible, short arguments will mirror their curl equivalents.
-However, I'm not trying to implement every single curl option, and if
-there are arguments that are labeled differently between curl and eepget,
-eepget options will be used instead.
-
-## to build:
-
-        make deps build
-
-## to use:
+## Install
 
 ```
-iget is a highly-configurable curl/wget-like client that works exclusively over i2p via the SAM API.
-
-Usage:
-  iget [URL] [flags]
-
-Flags:
-  -p, --bridge-addr string   host:port of the SAM bridge (overrides bridge-host/bridge-port)
-      --bridge-host string   host of the SAM bridge (default "127.0.0.1")
-      --bridge-port string   port of the SAM bridge (default "7656")
-      --close                close the request immediately after reading the response (default true)
-      --config string        config file (default: $HOME/.iget.yaml)
-      --conn-debug           print connection debug info
-  -c, --continue             resume file from previous download (default true)
-  -d, --data string          request body for POST/PUT
-      --disable-keepalives   disable keepalives
-  -e, --etag string          set the If-None-Match request header for conditional GETs
-      --from-port string     SAM virtual source port
-  -H, --header stringArray   add a request header in key=value form (repeatable)
-  -h, --help                 help for iget
-      --idle-conns int       maximum idle connections per host (default 4)
-      --in-backups int       inbound backup count (default 3)
-      --in-tunnels int       inbound tunnel count (default 8)
-      --lifespan int         lifespan of an idle i2p destination in minutes (default 6)
-  -l, --line-length int      control line length of output (0 = unlimited) (default 80)
-  -m, --mark-size int        show download progress (any value > 0 enables)
-      --method string        request method (default "GET")
-      --out-backups int      outbound backup count (default 3)
-      --out-tunnels int      outbound tunnel count (default 8)
-  -o, --output string        output path (- for stdout) (default "-")
-  -x, --password string      password for SAM authentication
-  -n, --retries int          number of retries (default 3)
-  -t, --timeout int          timeout duration in minutes (default 6)
-      --to-port string       SAM virtual destination port
-      --tunlength int        tunnel length (default 3)
-      --url string           i2p URL to retrieve
-  -u, --username string      username for SAM authentication
-  -v, --verbose              print additional info about the process
+go install github.com/eyedeekay/iget/iget@latest
 ```
 
+## CLI Usage
+
+```
+iget [options] <url>
+
+Options:
+  -url string          URL to retrieve (or pass as a positional argument)
+  -o string            Output path (default: stdout)
+  -output string       Output path (long form)
+  -method string       HTTP method (default: GET)
+  -c                   Resume a partial download (default: true)
+  -close               Close connection after response (default: true)
+  -m int               Show download progress (any value > 0 enables)
+  -l int               Line length of output (default: 80)
+  -t int               Timeout in minutes (default: 6)
+  -timeout int         Timeout in minutes (long form)
+  -n int               Retry count (default: 3)
+  -h key=value         Add request header (repeatable)
+  -header key=value    Add request header (long form, repeatable)
+
+SAM Bridge:
+  -bridge-host string  SAM bridge host (default: 127.0.0.1)
+  -bridge-port string  SAM bridge port (default: 7656)
+  -bridge-addr string  SAM bridge host:port, overrides above (default: 127.0.0.1:7656)
+  -p string            SAM bridge host:port (short form)
+
+I2P Tunnel:
+  -lifespan int        Idle destination lifespan in minutes (default: 6)
+  -tunlength int       Tunnel length (default: 3)
+  -in-tunnels int      Inbound tunnel count (default: 8)
+  -out-tunnels int     Outbound tunnel count (default: 8)
+  -in-backups int      Inbound backup tunnel count (default: 3)
+  -out-backups int     Outbound backup tunnel count (default: 3)
+
+Transport:
+  -disable-keepalives  Disable HTTP keep-alives
+  -idle-conns int      Max idle connections per host (default: 4)
+
+Debug:
+  -verbose             Print process information to stderr
+  -conn-debug          Print SAM connection debug info
+```
+
+**Note:** iget uses the SAM bridge API (default port `7656`), not the I2P HTTP proxy (port `4444`). Passing a port `4444` address will be rejected with an error.
+
+## Library Usage
+
+```go
+import iget "github.com/eyedeekay/iget"
+```
+
+### Construct a client
+
+```go
+client, err := iget.NewIGet(
+    iget.SamHost("127.0.0.1"),
+    iget.SamPort("7656"),
+    iget.URL("http://example.i2p/"),
+    iget.Timeout(6),
+    iget.Inbound(4),
+    iget.Outbound(4),
+)
+```
+
+### Make a request
+
+```go
+req, err := client.Request()
+resp, err := client.Do(req)
+client.PrintResponse(resp)
+```
+
+### As an `http.RoundTripper`
+
+`IGet` implements `http.RoundTripper`, so it can be used as a transport for any standard or third-party HTTP client:
+
+```go
+httpClient := &http.Client{Transport: client}
+```
+
+Or with libraries like [Resty](https://github.com/go-resty/resty):
+
+```go
+restyClient := resty.New().SetTransport(client)
+```
+
+### As a Heimdall-compatible client
+
+`IGet.Do` satisfies [Heimdall's `Client` interface](https://github.com/gojek/heimdall) directly.
+
+### Options reference
+
+| Option | Description |
+|---|---|
+| `SamHost(string)` | SAM bridge host |
+| `SamPort(string)` | SAM bridge port |
+| `URL(string)` | Default request URL |
+| `Timeout(int)` | Timeout in minutes |
+| `Lifespan(int)` | Idle destination lifespan in minutes |
+| `Length(int)` | Tunnel length (in and out) |
+| `Inbound(int)` | Inbound tunnel count |
+| `Outbound(int)` | Outbound tunnel count |
+| `InboundBackups(int)` | Inbound backup tunnel count |
+| `OutboundBackups(int)` | Outbound backup tunnel count |
+| `KeepAlives(bool)` | Enable HTTP keep-alives |
+| `Idles(int)` | Max idle connections per host |
+| `Output(string)` | Output file path (`-` for stdout) |
+| `LineLength(int)` | Output line wrap length |
+| `MarkSize(int)` | Enable download progress display |
+| `Continue(bool)` | Resume partial downloads |
+| `Verbose(bool)` | Verbose logging |
+| `Debug(bool)` | SAM connection debug logging |
+| `Username(string)` | SAM AUTH username |
+| `Password(string)` | SAM AUTH password |
+
+## Build
+
+```
+make deps build
+```
