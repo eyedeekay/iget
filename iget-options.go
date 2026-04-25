@@ -130,3 +130,13 @@ func Body(i string) Option {
 		args.body = i
 	}
 }
+
+// SessionName sets the SAM session name used to identify this client's I2P
+// destination. By default NewIGet generates a unique per-invocation name so
+// that consecutive runs use different destinations and cannot be correlated.
+// Set an explicit name when a persistent, stable I2P identity is intentional.
+func SessionName(name string) Option {
+	return func(args *IGet) {
+		args.sessionName = name
+	}
+}

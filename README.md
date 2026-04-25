@@ -20,6 +20,15 @@ Only one I know of so far.
 
   - marginally slower, due to tunnel-creation at runtime.
 
+### Security Notes:
+
+  - TLS certificate verification is disabled (`InsecureSkipVerify: true`). This
+    is intentional: I2P eepsites commonly use self-signed certificates and
+    certificate authorities have no jurisdiction over the I2P network. All
+    traffic is already routed through the I2P network via SAM, so there is no
+    clearnet exposure. Users who require strict certificate pinning should be
+    aware of this behaviour.
+
 Wherever possible, short arguments will mirror their curl equivalents.
 However, I'm not trying to implement every single curl option, and if
 there are arguments that are labeled differently between curl and eepget,
@@ -32,67 +41,42 @@ eepget options will be used instead.
 ## to use:
 
 ```
-Usage of /home/idk/go/src/github.com/eyedeekay/iget/iget/iget:
-  -bridge-addr string
-    	host:port of the SAM bridge. Overrides bridge-host/bridge-port. (default "127.0.0.1:7656")
-  -bridge-host string
-    	host: of the SAM bridge (default "127.0.0.1")
-  -bridge-port string
-    	:port of the SAM bridge (default "7656")
-  -c	Resume file from previous download (default true)
-  -close
-    	Close the request immediately after reading the response (default true)
-  -conn-debug
-    	Print connection debug info
-  -disable-keepalives
-    	Disable keepalives
-  -e string
-    	Set the etag header, not enabled yet, will break when used.
-  -h value
-    	Add a header to the request in the form key=value
-  -header value
-    	Add a header to the request in the form key=value
-  -idle-conns int
-    	Maximium idle connections per host (default 4)
-  -in-backups int
-    	Inbound Backup Count (default 3)
-  -in-tunnels int
-    	Inbound Tunnel Count (default 8)
-  -l int
-    	Control line length of output (default 80)
-  -lifespan int
-    	Lifespan of an idle i2p destination in minutes (default 6)
-  -lineLength int
-    	Control line length of output
-  -m int
-    	Show download progress while it's happening, any number greater than zero enables
-  -method string
-    	Request method (default "GET")
-  -n int
-    	Number of retries on failure (default 3)
-  -o string
-    	Output path (default "-")
-  -out-backups int
-    	Inbound Backup Count (default 3)
-  -out-tunnels int
-    	Inbound Tunnel Count (default 8)
-  -output string
-    	Output path (default "-")
-  -p string
-    	host:port of the SAM bridge. Overrides bridge-host/bridge-port. (default "127.0.0.1:7656")
-  -t int
-    	Timeout duration in minutes (default 6)
-  -timeout int
-    	Timeout duration in minutes (default 6)
-  -tunlength int
-    	Tunnel Length (default 3)
-  -u string
-    	Username for authenticating to SAM
-  -url string
-    	i2p URL you want to retrieve
-  -verbose
-    	Print additional info about the process
-  -x string
-    	Password for authenticating to SAM
+iget is a highly-configurable curl/wget-like client that works exclusively over i2p via the SAM API.
+
+Usage:
+  iget [URL] [flags]
+
+Flags:
+  -p, --bridge-addr string   host:port of the SAM bridge (overrides bridge-host/bridge-port)
+      --bridge-host string   host of the SAM bridge (default "127.0.0.1")
+      --bridge-port string   port of the SAM bridge (default "7656")
+      --close                close the request immediately after reading the response (default true)
+      --config string        config file (default: $HOME/.iget.yaml)
+      --conn-debug           print connection debug info
+  -c, --continue             resume file from previous download (default true)
+  -d, --data string          request body for POST/PUT
+      --disable-keepalives   disable keepalives
+  -e, --etag string          set the If-None-Match request header for conditional GETs
+      --from-port string     SAM virtual source port
+  -H, --header stringArray   add a request header in key=value form (repeatable)
+  -h, --help                 help for iget
+      --idle-conns int       maximum idle connections per host (default 4)
+      --in-backups int       inbound backup count (default 3)
+      --in-tunnels int       inbound tunnel count (default 8)
+      --lifespan int         lifespan of an idle i2p destination in minutes (default 6)
+  -l, --line-length int      control line length of output (0 = unlimited) (default 80)
+  -m, --mark-size int        show download progress (any value > 0 enables)
+      --method string        request method (default "GET")
+      --out-backups int      outbound backup count (default 3)
+      --out-tunnels int      outbound tunnel count (default 8)
+  -o, --output string        output path (- for stdout) (default "-")
+  -x, --password string      password for SAM authentication
+  -n, --retries int          number of retries (default 3)
+  -t, --timeout int          timeout duration in minutes (default 6)
+      --to-port string       SAM virtual destination port
+      --tunlength int        tunnel length (default 3)
+      --url string           i2p URL to retrieve
+  -u, --username string      username for SAM authentication
+  -v, --verbose              print additional info about the process
 ```
 

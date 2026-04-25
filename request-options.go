@@ -26,8 +26,9 @@ func Close(i bool) RequestOption {
 func Headers(i []string) RequestOption {
 	return func(args *http.Request) {
 		for _, x := range i {
-			if len(strings.Split(x, "=")) == 2 {
-				args.Header.Add(strings.Split(x, "=")[0], strings.Split(x, "=")[1])
+			parts := strings.SplitN(x, "=", 2)
+			if len(parts) == 2 && parts[0] != "" {
+				args.Header.Add(parts[0], parts[1])
 			}
 		}
 	}

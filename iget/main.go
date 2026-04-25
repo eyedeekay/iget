@@ -1,10 +1,14 @@
+// Package main is the entry point for the iget command-line binary.
+// It wires cobra flags and viper configuration to the iget library,
+// providing a curl/wget-like interface for downloading resources over I2P.
 package main
 
 import (
 	"fmt"
+	"net"
 	"net/url"
 	"os"
-	"strings"
+	"time"
 
 	i "github.com/go-i2p/iget"
 	"github.com/spf13/cobra"
@@ -72,6 +76,7 @@ func init() {
 	rootCmd.Flags().BoolP("continue", "c", true, "resume file from previous download")
 	rootCmd.Flags().String("to-port", "", "SAM virtual destination port")
 	rootCmd.Flags().String("from-port", "", "SAM virtual source port")
+	rootCmd.Flags().String("session-name", "", "SAM session name (default: unique per invocation; set to reuse a persistent I2P identity)")
 }
 
 func initConfig() {
@@ -97,6 +102,17 @@ func initConfig() {
 	}
 }
 
+// parseSAMBridgeAddr parses a SAM bridge address in host:port form, correctly
+// handling IPv6 bracket notation (e.g. "[::1]:7656"). It returns an error when
+// the address is not a valid host:port pair.
+func parseSAMBridgeAddr(addr string) (host, port string, err error) {
+	host, port, err = net.SplitHostPort(addr)
+	if err != nil {
+		return "", "", fmt.Errorf("invalid --bridge-addr %q: %w", addr, err)
+	}
+	return host, port, nil
+}
+
 func run(cmd *cobra.Command, args []string) error {
 	address := viper.GetString("url")
 	if len(args) == 1 {
@@ -116,21 +132,18 @@ func run(cmd *cobra.Command, args []string) error {
 	samAddr := viper.GetString("bridge-addr")
 
 	// Translate eepget-style HTTP proxy addresses (port 4444) to SAM bridge
-	if strings.Contains(samAddr, "4444") {
-		fmt.Fprintln(os.Stdout, "This application uses the SAM API instead of the http proxy.")
-		fmt.Fprintln(os.Stdout, "Please modify your scripts to use the SAM port.")
-		return nil
-	}
-
 	if samAddr != "" {
-		parts := strings.Split(samAddr, ":")
-		switch len(parts) {
-		case 2:
-			samHost = parts[0]
-			samPort = parts[1]
-		case 1:
-			samPort = parts[0]
+		host, port, err := parseSAMBridgeAddr(samAddr)
+		if err != nil {
+			return err
 		}
+		if port == "4444" {
+			fmt.Fprintln(os.Stdout, "This application uses the SAM API instead of the http proxy.")
+			fmt.Fprintln(os.Stdout, "Please modify your scripts to use the SAM port.")
+			return nil
+		}
+		samHost = host
+		samPort = port
 	}
 
 	lineLen := viper.GetInt("line-length")
@@ -168,6 +181,7 @@ func run(cmd *cobra.Command, args []string) error {
 		i.Body(viper.GetString("data")),
 		i.ToPort(viper.GetString("to-port")),
 		i.FromPort(viper.GetString("from-port")),
+		i.SessionName(viper.GetString("session-name")),
 	)
 	if err != nil {
 		return err
@@ -175,7 +189,16 @@ func run(cmd *cobra.Command, args []string) error {
 	defer igetClient.Close()
 
 	retries := viper.GetInt("retries")
+	if retries < 1 {
+		retries = 1
+	}
 	for attempt := 0; attempt < retries; attempt++ {
+		if attempt > 0 {
+			// Back-off between retries so that transient I2P tunnel failures have
+			// time to recover. The delay grows linearly with the attempt number so
+			// the first retry is quick (5 s) and later ones are progressively slower.
+			time.Sleep(time.Duration(attempt) * 5 * time.Second)
+		}
 		req, reqErr := igetClient.Request(
 			i.Headers(headers),
 			i.Close(viper.GetBool("close")),

@@ -7,6 +7,7 @@
 package iget
 
 import (
+	"bufio"
 	"context"
 	"crypto/tls"
 	"fmt"
@@ -51,6 +52,8 @@ type IGet struct {
 	toPort   string
 	fromPort string
 
+	sessionName string
+
 	client    *http.Client
 	transport *http.Transport
 	garlic    *onramp.Garlic
@@ -88,9 +91,9 @@ func (i *IGet) applyPortOptions() func(ctx context.Context, network, addr string
 		if i.toPort != "" {
 			// Encode destination virtual port into the address as "dest.i2p:port".
 			addr = net.JoinHostPort(host, i.toPort)
-		} else {
-			addr = host
 		}
+		// When toPort is empty, addr retains its original host:httpPort form so
+		// that DialContextToPort receives a well-formed address string.
 		if i.fromPort != "" {
 			fp, err := net.LookupPort("tcp", i.fromPort)
 			if err != nil {
@@ -102,6 +105,10 @@ func (i *IGet) applyPortOptions() func(ctx context.Context, network, addr string
 	}
 }
 
+// WriteCounter tracks the number of bytes written during a download and
+// optionally prints progress messages to stdout at configurable intervals.
+// Total is the running byte count, MarkSize is the interval between progress
+// updates, and LastMark records the Total value at the last printed update.
 type WriteCounter struct {
 	Total    uint64
 	MarkSize uint64
@@ -120,8 +127,15 @@ func (i *IGet) resolveOutputPath(rawURL string) {
 }
 
 // saveToFile copies the response body to the configured output file with progress tracking.
+// When continueDownload is true the file is opened for append so that a partial download
+// can be extended; when false the file is truncated so that a fresh download always
+// produces an intact file rather than appending to stale content.
 func (i *IGet) saveToFile(body io.Reader) (err error) {
-	f, err := os.OpenFile(i.outputPath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0o644)
+	flags := os.O_WRONLY | os.O_CREATE | os.O_TRUNC
+	if i.continueDownload {
+		flags = os.O_APPEND | os.O_WRONLY | os.O_CREATE
+	}
+	f, err := os.OpenFile(i.outputPath, flags, 0o644)
 	if err != nil {
 		return err
 	}
@@ -140,6 +154,22 @@ func (i *IGet) saveToFile(body io.Reader) (err error) {
 	}
 	_, err = io.Copy(f, io.TeeReader(body, counter))
 	return err
+}
+
+// truncateIfRangeIgnored truncates the output file when a resume Range request
+// was sent but the server returned a full 200 response. This prevents the
+// pre-existing partial bytes from being duplicated by the appended full body.
+func (i *IGet) truncateIfRangeIgnored(req *http.Request, resp *http.Response) error {
+	if !i.continueDownload || req.Header.Get("Range") == "" {
+		return nil
+	}
+	if resp.StatusCode == http.StatusPartialContent {
+		return nil
+	}
+	if err := os.Truncate(i.outputPath, 0); err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("iget: server returned %s for range request; failed to truncate: %w", resp.Status, err)
+	}
+	return nil
 }
 
 // Do "does" a request and returns a response. It's just a wrapper for http/client.Do
@@ -164,6 +194,10 @@ func (i *IGet) Do(req *http.Request) (*http.Response, error) {
 		fmt.Fprintf(i.verboseOut, "[iget] response: %s\n", c.Status)
 	}
 	if i.outputPath != "-" && i.outputPath != "stdout" {
+		if err := i.truncateIfRangeIgnored(req, c); err != nil {
+			c.Body.Close()
+			return nil, err
+		}
 		if err := i.saveToFile(c.Body); err != nil {
 			c.Body.Close()
 			return nil, err
@@ -172,6 +206,8 @@ func (i *IGet) Do(req *http.Request) (*http.Response, error) {
 	return c, e
 }
 
+// Write implements io.Writer. It accumulates the byte count and calls
+// PrintProgress whenever the total crosses a new MarkSize boundary.
 func (wc *WriteCounter) Write(p []byte) (int, error) {
 	n := len(p)
 	wc.Total += uint64(n)
@@ -182,30 +218,38 @@ func (wc *WriteCounter) Write(p []byte) (int, error) {
 	return n, nil
 }
 
+// PrintProgress writes a human-readable download progress line to stdout,
+// overwriting the previous line in place via a carriage return.
 func (wc WriteCounter) PrintProgress() {
 	fmt.Fprintf(os.Stdout, "\r%s", strings.Repeat(" ", 35))
 	fmt.Fprintf(os.Stdout, "\rDownloading... %s complete", humanize.Bytes(wc.Total))
 }
 
 // DoBytes does a request and returns the body of a response as bytes.
-// it is unused in iget, it's here for a hypothetical API and testing.
+// It must be used with the default stdout output path ("-" or "stdout");
+// if an explicit file output path has been set via Output(), DoBytes returns
+// an error because Do() will have already drained the response body into the
+// file before DoBytes can read it.
+// It is unused in iget itself; it is part of the library API for callers and testing.
 func (i *IGet) DoBytes(req *http.Request) ([]byte, error) {
-	var b []byte
-	var err error
+	if i.outputPath != "-" && i.outputPath != "stdout" {
+		return nil, fmt.Errorf("iget: DoBytes requires stdout output (got outputPath=%q); use Do() when writing to a file", i.outputPath)
+	}
 	c, e := i.Do(req)
 	if e != nil {
-		return b, e
+		return nil, e
 	}
 	defer c.Body.Close()
-	b, err = io.ReadAll(c.Body)
+	body, err := io.ReadAll(c.Body)
 	if err != nil {
-		return b, err
+		return nil, err
 	}
-	return b, nil
+	return body, nil
 }
 
 // DoString does a request, converts the body to bytes, then returns the body of a response as a string.
-// it is unused in iget, it's here for a hypothetical API and testing.
+// It must be used with the default stdout output path; see DoBytes for the constraint details.
+// It is unused in iget itself; it is part of the library API for callers and testing.
 func (i *IGet) DoString(req *http.Request) (string, error) {
 	b, e := i.DoBytes(req)
 	if e != nil {
@@ -241,25 +285,33 @@ func (i *IGet) DownloadedFileSize() int64 {
 	return f.Size()
 }
 
-// PrintResponse routes the output
+// PrintResponse routes the output to stdout, streaming the response body
+// rather than buffering it entirely in memory. When lineLength is 0 the body
+// is copied directly to stdout. When lineLength > 0 a bufio.Reader is used to
+// read one rune at a time and a newline is inserted at each lineLength boundary
+// without pre-loading the whole body.
 func (i *IGet) PrintResponse(c *http.Response) string {
 	defer c.Body.Close()
 	i.resolveOutputPath(c.Request.URL.String())
-	if i.outputPath == "-" || i.outputPath == "stdout" {
-		b, err := io.ReadAll(c.Body)
+	if i.outputPath != "-" && i.outputPath != "stdout" {
+		return ""
+	}
+	if i.lineLength <= 0 {
+		io.Copy(os.Stdout, c.Body) //nolint:errcheck
+		return ""
+	}
+	br := bufio.NewReader(c.Body)
+	col := 0
+	for {
+		r, _, err := br.ReadRune()
 		if err != nil {
-			return ""
+			break
 		}
-		a := []rune(string(b))
-		for index, r := range a {
-			if i.lineLength > 0 && index > 0 && (index+1)%i.lineLength == 0 {
-				fmt.Printf("%c\n", r)
-			} else {
-				fmt.Printf("%c", r)
-			}
+		col++
+		fmt.Printf("%c", r)
+		if col%i.lineLength == 0 {
+			fmt.Printf("\n")
 		}
-		// fmt.Printf("%s", b)
-		return string(b)
 	}
 	return ""
 }
@@ -291,12 +343,12 @@ func NewIGet(setters ...Option) (*IGet, error) {
 		destLifespan:     6 * 60 * 1000,
 		timeoutTime:      6 * 60 * 1000, // 6 minutes — matches --timeout default
 		tunnelLength:     3,
-		inboundTunnels:   2,
-		outboundTunnels:  2,
+		inboundTunnels:   8,
+		outboundTunnels:  8,
 		keepAlives:       false,
 		idleConns:        4,
-		inboundBackups:   1,
-		outboundBackups:  1,
+		inboundBackups:   3,
+		outboundBackups:  3,
 		continueDownload: true,
 		lineLength:       80,
 		transport:        nil,
@@ -304,6 +356,12 @@ func NewIGet(setters ...Option) (*IGet, error) {
 	var err error
 	for _, setter := range setters {
 		setter(i)
+	}
+	// Default to an ephemeral, per-invocation session name so that no two runs
+	// share the same I2P destination. Users who need a persistent identity (e.g.
+	// for session-cookie continuity) can override this via SessionName().
+	if i.sessionName == "" {
+		i.sessionName = fmt.Sprintf("iget-%d", time.Now().UnixNano())
 	}
 	samOpts := []string{
 		fmt.Sprintf("inbound.length=%d", i.tunnelLength),
@@ -315,9 +373,9 @@ func NewIGet(setters ...Option) (*IGet, error) {
 		fmt.Sprintf("i2cp.closeIdleTime=%d", i.destLifespan),
 	}
 	if i.username != "" || i.password != "" {
-		i.garlic, err = onramp.NewGarlicWithAuth("iget", i.samaddress(), i.username, i.password, samOpts)
+		i.garlic, err = onramp.NewGarlicWithAuth(i.sessionName, i.samaddress(), i.username, i.password, samOpts)
 	} else {
-		i.garlic, err = onramp.NewGarlic("iget", i.samaddress(), samOpts)
+		i.garlic, err = onramp.NewGarlic(i.sessionName, i.samaddress(), samOpts)
 	}
 	if err != nil {
 		return nil, err

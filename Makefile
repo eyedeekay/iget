@@ -23,7 +23,7 @@ fmt:
 	find . -name '*.go' -exec gofumpt -w -extra {} \;
 
 lint:
-	find . -name '*.go' -exec golint {} \;
+	staticcheck ./...
 
 # This is just to make sure that I don't leave unnecessary crap behind in the code.
 checkuses:
@@ -39,8 +39,15 @@ clean:
 	rm -f $(OUTFOLDER)/iget
 
 deps:
-	go get -u github.com/eyedeekay/goSam
+	go get -u github.com/go-i2p/onramp
 	go mod tidy
+
+readme-usage: build
+	@printf '## to use:\n\n```\n' > /tmp/iget-usage.txt
+	@$(OUTFOLDER)/iget --help 2>&1 >> /tmp/iget-usage.txt
+	@printf '```\n\n' >> /tmp/iget-usage.txt
+	@perl -i -0pe 's/## to use:.*?(?=\n## |\z)/`cat \/tmp\/iget-usage.txt`/se' README.md
+	@rm -f /tmp/iget-usage.txt
 
 README.md:
 	@echo "# iget" | tee $(PWD)/README.md
