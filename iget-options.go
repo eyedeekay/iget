@@ -142,3 +142,38 @@ func SessionName(name string) Option {
 		args.sessionName = name
 	}
 }
+
+// Output sets the output to redirect to a file
+func Output(i string) Option {
+	return func(args *IGet) {
+		args.outputPath = i
+	}
+}
+
+// ToPort sets the SAM virtual destination port for outgoing connections.
+func ToPort(s string) Option {
+	return func(args *IGet) {
+		args.toPort = s
+	}
+}
+
+// FromPort sets the SAM virtual source port for incoming connections.
+func FromPort(s string) Option {
+	return func(args *IGet) {
+		args.fromPort = s
+	}
+}
+
+// DisableKeepAlives disables keepalives on the HTTP transport when set to true
+func DisableKeepAlives(i bool) Option {
+	return func(args *IGet) {
+		args.keepAlives = i
+	}
+}
+
+// Idles tells the max number of idle connections to allow
+func Idles(i int) Option {
+	return func(args *IGet) {
+		args.idleConns = i
+	}
+}
