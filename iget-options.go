@@ -10,7 +10,9 @@ func Lifespan(i int) Option {
 	}
 }
 
-// MarkSize
+// MarkSize sets the download progress interval in bytes. A progress line is
+// printed to stdout after every MarkSize bytes are received. Set to 0 (the
+// default) to disable progress output.
 func MarkSize(i int) Option {
 	return func(args *IGet) {
 		args.markSize = i

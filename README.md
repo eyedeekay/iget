@@ -123,8 +123,29 @@ restyClient := resty.New().SetTransport(client)
 | `Username(string)` | SAM AUTH username |
 | `Password(string)` | SAM AUTH password |
 
+## Limitations
+
+- **Timeout applies to response headers only.** The `--timeout` flag controls
+  how long iget will wait to receive the first response byte (via
+  `ResponseHeaderTimeout`). Once the server begins streaming a response, there
+  is no deadline on how long the body transfer may take. Very long downloads
+  over slow I2P tunnels will proceed until completion or an OS-level interrupt.
+  To abort a stalled transfer, press Ctrl+C.
+
 ## Build
 
 ```
 make deps build
 ```
+
+## Development Prerequisites
+
+The `make build` target runs formatting and linting before compiling. Install
+the required tools before running `make build`:
+
+```sh
+go install mvdan.cc/gofumpt@latest
+go install honnef.co/go/tools/cmd/staticcheck@latest
+```
+
+Alternatively, use `make install-tools` to install both in one step.

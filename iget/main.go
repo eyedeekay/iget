@@ -8,6 +8,8 @@ import (
 	"net"
 	"net/url"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	i "github.com/go-i2p/iget"
@@ -188,6 +190,18 @@ func run(cmd *cobra.Command, args []string) error {
 	}
 	defer igetClient.Close()
 
+	// Install a signal handler so that Ctrl+C (SIGINT) and SIGTERM trigger
+	// SAM session cleanup. Without this, Go's default handler calls os.Exit
+	// directly, bypassing deferred functions and leaving the SAM session open
+	// in the I2P router until its idle timeout expires.
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-sigCh
+		igetClient.Close() //nolint:errcheck
+		os.Exit(1)
+	}()
+
 	retries := viper.GetInt("retries")
 	if retries < 1 {
 		retries = 1
@@ -198,6 +212,14 @@ func run(cmd *cobra.Command, args []string) error {
 			// time to recover. The delay grows linearly with the attempt number so
 			// the first retry is quick (5 s) and later ones are progressively slower.
 			time.Sleep(time.Duration(attempt) * 5 * time.Second)
+			// Recreate the SAM session so that a stale or broken session from the
+			// previous attempt does not cause all retries to fail immediately.
+			if resetErr := igetClient.Reset(); resetErr != nil {
+				if attempt == retries-1 {
+					return resetErr
+				}
+				continue
+			}
 		}
 		req, reqErr := igetClient.Request(
 			i.Headers(headers),

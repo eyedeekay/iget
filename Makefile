@@ -33,10 +33,14 @@ $(OUTFOLDER):
 	mkdir -p $(OUTFOLDER)
 
 test:
-	go test
+	go test ./...
 
 clean:
 	rm -f $(OUTFOLDER)/iget
+
+install-tools:
+	go install mvdan.cc/gofumpt@latest
+	go install honnef.co/go/tools/cmd/staticcheck@latest
 
 deps:
 	go get -u github.com/go-i2p/onramp
