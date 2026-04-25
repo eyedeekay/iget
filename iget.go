@@ -316,6 +316,16 @@ func (i *IGet) PrintResponse(c *http.Response) string {
 	return ""
 }
 
+// HTTPClient returns the underlying *http.Client used by IGet. It is exposed for advanced users who need to bypass the IGet Request and Do methods and interact directly with the HTTP client, for example to use a custom http.RoundTripper or to inspect client state.
+func (i *IGet) HTTPClient() *http.Client {
+	return i.client
+}
+
+// RoundTrip implements the http.RoundTripper interface by delegating to the IGet's http.Transport. This allows IGet to be used as a custom RoundTripper in contexts that require it, while still applying all of IGet's SAM and tunnel configurations.
+func (i *IGet) RoundTrip(req *http.Request) (*http.Response, error) {
+	return i.transport.RoundTrip(req)
+}
+
 // Close releases the underlying SAM session and closes all idle transport connections.
 // It must be called when the IGet client is no longer needed.
 func (i *IGet) Close() error {
