@@ -11,12 +11,14 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/go-i2p/onramp"
+	"github.com/valyala/fasthttp"
 )
 
 // IGet is an IGet client
@@ -167,6 +169,13 @@ func (i *IGet) HTTPClient() *http.Client {
 // RoundTrip implements the http.RoundTripper interface by delegating to the IGet's http.Transport. This allows IGet to be used as a custom RoundTripper in contexts that require it, while still applying all of IGet's SAM and tunnel configurations.
 func (i *IGet) RoundTrip(req *http.Request) (*http.Response, error) {
 	return i.transport.RoundTrip(req)
+}
+
+// FasthttpDial returns a fasthttp.DialFunc that dials through the IGet's http.Transport. This allows IGet to be used as a custom dialer in fasthttp clients, enabling SAM and tunnel configurations for fasthttp requests.
+func (i *IGet) FasthttpDial() fasthttp.DialFunc {
+	return func(addr string) (net.Conn, error) {
+		return i.transport.Dial("tcp", addr)
+	}
 }
 
 // Compile-time assertion that *IGet implements io.Closer.
