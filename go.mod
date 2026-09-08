@@ -1,65 +1,74 @@
 module github.com/go-i2p/iget
 
-go 1.26.1
+go 1.26.3
 
 require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/go-i2p/onramp v0.33.93-0.20260424200814-b7b6382ac96a
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
-	github.com/valyala/fasthttp v1.70.0
+	github.com/valyala/fasthttp v1.74.0
 )
 
 require (
 	filippo.io/edwards25519 v1.2.0 // indirect
-	github.com/andybalholm/brotli v1.2.1 // indirect
 	github.com/armon/circbuf v0.0.0-20190214190532-5111143e8da2 // indirect
 	github.com/beevik/ntp v1.5.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cretz/bine v0.2.0 // indirect
 	github.com/dchest/siphash v1.2.3 // indirect
-	github.com/eyedeekay/go-unzip v0.0.0-20240201194209-560d8225b50e // indirect
-	github.com/fsnotify/fsnotify v1.9.0 // indirect
-	github.com/go-i2p/common v0.1.4-0.20260411211028-c0b83edc2206 // indirect
-	github.com/go-i2p/crypto v0.1.4-0.20260411211008-27d6fe8e14e0 // indirect
-	github.com/go-i2p/elgamal v0.0.2 // indirect
-	github.com/go-i2p/go-datagrams v0.1.4-0.20260411211237-2ac3ebca34e0 // indirect
-	github.com/go-i2p/go-i2cp v0.1.4-0.20260416155517-f8c330e19c2b // indirect
-	github.com/go-i2p/go-i2p v0.1.4-0.20260411211146-a5251e618867 // indirect
-	github.com/go-i2p/go-nat-listener v0.0.0-20260402222111-bfda0025cb1b // indirect
-	github.com/go-i2p/go-noise v0.1.4-0.20260411211128-6132d2d7c6f7 // indirect
-	github.com/go-i2p/go-sam-bridge v0.1.4-0.20260411210623-2df4d2ace98c // indirect
-	github.com/go-i2p/go-sam-go v0.33.1-0.20260411195601-326503e35a5c // indirect
-	github.com/go-i2p/go-streaming v0.1.4-0.20260413210745-0bd8c995039c // indirect
+	github.com/fsnotify/fsnotify v1.10.1 // indirect
+	github.com/go-i2p/common v0.1.59999 // indirect
+	github.com/go-i2p/crypto v0.1.59999 // indirect
+	github.com/go-i2p/elgamal v0.1.59999 // indirect
+	github.com/go-i2p/go-datagrams v0.1.59999 // indirect
+	github.com/go-i2p/go-i2cp v0.1.59999 // indirect
+	github.com/go-i2p/go-i2p v0.1.59999 // indirect
+	github.com/go-i2p/go-nat-listener v0.1.68 // indirect
+	github.com/go-i2p/go-noise v0.1.59999 // indirect
+	github.com/go-i2p/go-sam-bridge v0.1.59999 // indirect
+	github.com/go-i2p/go-sam-go v0.33.1 // indirect
+	github.com/go-i2p/go-streaming v0.1.59999 // indirect
+	github.com/go-i2p/go-unzip v0.0.0-20260908192035-1d47af1fc238 // indirect
 	github.com/go-i2p/i2pkeys v0.33.92 // indirect
-	github.com/go-i2p/logger v0.1.6-0.20260416175522-ca16e38699b3 // indirect
+	github.com/go-i2p/logger v0.1.60000-0.20260701134448-2648c3b0e040 // indirect
 	github.com/go-i2p/noise v1.1.1-0.20260411211052-e55ea74b1439 // indirect
-	github.com/go-i2p/red25519 v0.0.0-20260302212615-1093a31f680d // indirect
-	github.com/go-i2p/su3 v0.0.2-0.20260413153317-5e4e8cc3b554 // indirect
+	github.com/go-i2p/path v0.1.59999 // indirect
+	github.com/go-i2p/pool v0.1.59999 // indirect
+	github.com/go-i2p/red25519 v0.0.0-20260908192929-b906f5fda5c0 // indirect
+	github.com/go-i2p/su3 v0.1.59999 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/huin/goupnp v1.3.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
-	github.com/jackpal/go-nat-pmp v1.0.2 // indirect
-	github.com/klauspost/compress v1.18.5 // indirect
-	github.com/oklog/ulid/v2 v2.1.1 // indirect
-	github.com/pelletier/go-toml/v2 v2.3.0 // indirect
+	github.com/jackpal/go-nat-pmp v1.1.0 // indirect
+	github.com/klauspost/compress v1.20.0 // indirect
+	github.com/molecule-man/go-brrr v1.0.1 // indirect
+	github.com/oklog/ulid/v2 v2.1.2 // indirect
+	github.com/pelletier/go-toml/v2 v2.4.3 // indirect
 	github.com/sagikazarmark/locafero v0.12.0 // indirect
 	github.com/samber/lo v1.53.0 // indirect
-	github.com/samber/oops v1.21.0 // indirect
-	github.com/sirupsen/logrus v1.9.4 // indirect
+	github.com/samber/oops v1.23.1 // indirect
+	github.com/sirupsen/logrus v1.10.2 // indirect
 	github.com/spf13/afero v1.15.0 // indirect
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	go.opentelemetry.io/otel v1.43.0 // indirect
-	go.opentelemetry.io/otel/trace v1.43.0 // indirect
-	go.step.sm/crypto v0.77.2 // indirect
-	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/crypto v0.50.0 // indirect
-	golang.org/x/net v0.53.0 // indirect
-	golang.org/x/sync v0.20.0 // indirect
-	golang.org/x/sys v0.43.0 // indirect
-	golang.org/x/text v0.36.0 // indirect
+	go.opentelemetry.io/otel v1.46.0 // indirect
+	go.opentelemetry.io/otel/trace v1.46.0 // indirect
+	go.step.sm/crypto v0.90.0 // indirect
+	go.yaml.in/yaml/v3 v3.0.5 // indirect
+	golang.org/x/crypto v0.57.0 // indirect
+	golang.org/x/net v0.59.0 // indirect
+	golang.org/x/sync v0.23.0 // indirect
+	golang.org/x/sys v0.48.0 // indirect
+	golang.org/x/text v0.42.0 // indirect
+	golang.org/x/time v0.16.0 // indirect
+)
+
+retract (
+	v0.1.59999
+	v0.1.5999
+	v0.1.599
 )
